@@ -4,10 +4,10 @@ cd /home/pi/python
 
 python tdtool-with-sensors.py -d 2367754
 python tdtool-with-sensors.py -d 2777935
-python tdtool-with-sensors.py -d 2821615  
-python tdtool-with-sensors.py -d 3017840  
+python tdtool-with-sensors.py -d 2821615
+python tdtool-with-sensors.py -d 3017840
 
-while true 
+while true
 do
   python tdtool-with-sensors.py -d 2367754  >> TempLog.dat
   python tdtool-with-sensors.py -d 2777935  >> TempLog.dat
@@ -15,7 +15,8 @@ do
   python tdtool-with-sensors.py -d 2821615  >> TempLogBad.dat
   python tdtool-with-sensors.py -d 3017840  >> TempLogBad.dat
 
-#  python VisTempBad.py --s /var/www/TempBad.png
+  ./VisTemp.py -p Bad -s /var/www/TempBad.png
+  ./VisTemp.py -p Ute -s /var/www/TempUte.png
 
   sleep 600
 done
