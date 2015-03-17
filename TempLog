@@ -15,6 +15,8 @@ do
   python tdtool-with-sensors.py -d 2821615  >> TempLogBad.dat
   python tdtool-with-sensors.py -d 3017840  >> TempLogBad.dat
 
+#  python VisTempBad.py --s /var/www/TempBad.png
+
   sleep 600
 done
 
