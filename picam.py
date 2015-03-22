@@ -21,8 +21,8 @@ from PIL import Image
 # filenamePrefix     - string that prefixes the file name for easier identification of files.
 # diskSpaceToReserve - Delete oldest images to avoid filling disk. How much byte to keep free on disk.
 # cameraSettings     - "" = no extra settings; "-hf" = Set horizontal flip of image; "-vf" = Set vertical flip; "-hf -vf" = both horizontal and vertical flip
-threshold = 40     # 10 diff
-sensitivity = 100   # 20 cnt
+threshold = 50     # 10 diff
+sensitivity = 10   # 20 cnt
 
 forceCapture = True
 forceCaptureTime = 60 * 60 # Once an hour
@@ -30,7 +30,7 @@ forceCaptureTime = 60 * 60 # Once an hour
 filepath = "/var/www/picam"
 filenamePrefix = "cap"
 diskSpaceToReserve = 40 * 1024 * 1024 # Keep 40 mb free on disk
-cameraSettings = "-hf -vf "
+cameraSettings = "-hf -vf -awb shade -ISO 1600 -ss 100000"
 
 # settings of the photos to save
 saveWidth   = 1296
@@ -148,7 +148,7 @@ while (True):
                         debugim[x,y] = (pixdiff, 0, 0) # in debug mode, mark all changed pixel to green
                 else:
                     if ((debugMode) and (pixdiff > 2)):
-                        debugim[x,y] = (buffer2[x,y][0], (buffer2[x,y][1] >> 1) + pixdiff, buffer2[x,y][2]) # in debug mode, mark all changed pixel to green
+                        debugim[x,y] = (buffer2[x,y][0], (buffer2[x,y][1] >> 0) + (pixdiff << 2), buffer2[x,y][2]) # in debug mode, mark all changed pixel to green
                 
 
 
