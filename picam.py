@@ -21,14 +21,14 @@ from PIL import Image
 # filenamePrefix     - string that prefixes the file name for easier identification of files.
 # diskSpaceToReserve - Delete oldest images to avoid filling disk. How much byte to keep free on disk.
 # cameraSettings     - "" = no extra settings; "-hf" = Set horizontal flip of image; "-vf" = Set vertical flip; "-hf -vf" = both horizontal and vertical flip
-threshold = 20     # 10
-sensitivity = 40   # 20
+threshold = 40     # 10 diff
+sensitivity = 100   # 20 cnt
 forceCapture = True
 forceCaptureTime = 60 * 60 # Once an hour
 filepath = "/var/www/picam"
 filenamePrefix = "cap"
 diskSpaceToReserve = 40 * 1024 * 1024 # Keep 40 mb free on disk
-cameraSettings = "-hf -vf"
+cameraSettings = "-hf -vf "
 
 # settings of the photos to save
 saveWidth   = 1296
@@ -54,12 +54,12 @@ testBorders = [ [[1,testWidth],[1,testHeight]] ]  # [ [[start pixel on left side
 # "." is a street or a house, "X" are trees which move arround like crazy when the wind is blowing
 # because of the wind in the trees, there will be taken photos all the time. to prevent this, your setting might look like this:
 
-# testAreaCount = 2
-# testBorders = [ [[1,50],[1,75]], [[51,100],[26,75]] ] # area y=1 to 25 not scanned in x=51 to 100
+#testAreaCount = 2
+#testBorders = [ [[1,50],[1,75]], [[51,100],[26,75]] ] # area y=1 to 25 not scanned in x=51 to 100
 
 # even more complex example
-# testAreaCount = 4
-# testBorders = [ [[1,39],[1,75]], [[40,67],[43,75]], [[68,85],[48,75]], [[86,100],[41,75]] ]
+#testAreaCount = 4
+#testBorders = [ [[1,39],[1,75]], [[40,67],[43,75]], [[68,85],[48,75]], [[86,100],[41,75]] ]
 
 # in debug mode, a file debug.bmp is written to disk with marked changed pixel an with marked border of scan-area
 # debug mode should only be turned on while testing the parameters above
@@ -122,24 +122,36 @@ while (True):
     for z in xrange(0, testAreaCount): # = xrange(0,1) with default-values = z will only have the value of 0 = only one scan-area = whole picture
         for x in xrange(testBorders[z][0][0]-1, testBorders[z][0][1]): # = xrange(0,100) with default-values
             for y in xrange(testBorders[z][1][0]-1, testBorders[z][1][1]):   # = xrange(0,75) with default-values; testBorders are NOT zero-based, buffer1[x,y] are zero-based (0,0 is top left of image, testWidth-1,testHeight-1 is botton right)
+
                 if (debugMode):
                     debugim[x,y] = buffer2[x,y]
                     if ((x == testBorders[z][0][0]-1) or (x == testBorders[z][0][1]-1) or (y == testBorders[z][1][0]-1) or (y == testBorders[z][1][1]-1)):
                         # print "Border %s %s" % (x,y)
                         debugim[x,y] = (0, 0, 255) # in debug mode, mark all border pixel to blue
+
+
                 # Just check green channel as it's the highest quality channel
                 pixdiff = abs(buffer1[x,y][1] - buffer2[x,y][1])
                 if pixdiff > threshold:
                     changedPixels += 1
+                    
                     if (debugMode):
-                        debugim[x,y] = (0, 255, 0) # in debug mode, mark all changed pixel to green
+                        debugim[x,y] = (pixdiff, 0, 0) # in debug mode, mark all changed pixel to green
+                else:
+                    if ((debugMode) and (pixdiff > 2)):
+                        debugim[x,y] = (buffer2[x,y][0], (buffer2[x,y][1] >> 1) + pixdiff, buffer2[x,y][2]) # in debug mode, mark all changed pixel to green
+                
+
+
                 # Save an image if pixels changed
                 if (changedPixels > sensitivity):
                     takePicture = True # will shoot the photo later
                 if ((debugMode == False) and (changedPixels > sensitivity)):
                     break  # break the y loop
+                
             if ((debugMode == False) and (changedPixels > sensitivity)):
                 break  # break the x loop
+            
         if ((debugMode == False) and (changedPixels > sensitivity)):
             break  # break the z loop
 
