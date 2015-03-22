@@ -23,8 +23,10 @@ from PIL import Image
 # cameraSettings     - "" = no extra settings; "-hf" = Set horizontal flip of image; "-vf" = Set vertical flip; "-hf -vf" = both horizontal and vertical flip
 threshold = 40     # 10 diff
 sensitivity = 100   # 20 cnt
+
 forceCapture = True
 forceCaptureTime = 60 * 60 # Once an hour
+
 filepath = "/var/www/picam"
 filenamePrefix = "cap"
 diskSpaceToReserve = 40 * 1024 * 1024 # Keep 40 mb free on disk
@@ -113,6 +115,7 @@ while (True):
 
     # Count changed pixels
     changedPixels = 0
+    maxDiff = 0
     takePicture = False
 
     if (debugMode): # in debug mode, save a bitmap-file with marked changed pixels and with visible testarea-borders
@@ -132,6 +135,12 @@ while (True):
 
                 # Just check green channel as it's the highest quality channel
                 pixdiff = abs(buffer1[x,y][1] - buffer2[x,y][1])
+                #if pixdiff > 0:
+                #    print pix
+
+                if pixdiff > maxDiff:
+                    maxDiff = pixdiff
+                        
                 if pixdiff > threshold:
                     changedPixels += 1
                     
@@ -157,7 +166,7 @@ while (True):
 
     if (debugMode):
         debugimage.save(filepath + "/debug.bmp") # save debug image as bmp
-        print "debug.bmp saved, %s changed pixel" % changedPixels
+        print "debug.bmp saved, %s changed pixel, maxDiff = %s" % (changedPixels, maxDiff)
     # else:
     #     print "%s changed pixel" % changedPixels
 
