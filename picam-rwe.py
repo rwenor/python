@@ -67,6 +67,7 @@ testBorders = [ [[1,testWidth],[1,testHeight]] ]  # [ [[start pixel on left side
 
 # in debug mode, a file debug.bmp is written to disk with marked changed pixel an with marked border of scan-area
 # debug mode should only be turned on while testing the parameters above
+#debugMode = False       # False or True
 debugMode = True       # False or True
 detectMotion = True    # If false object are detekted, continues pict
 
@@ -105,33 +106,15 @@ def getFreeSpace():
     du = st.f_bavail * st.f_frsize
     return du
 
-
-# ************** START ****************
-##pygame.mixer.init()
-##s = pygame.mixer.Sound("/home/pi/python_games/match1.wav")
-##pygame.mixer.music.set_volume(0.1)
-##s.play()
-##s.stop()
-
-# Get first image
-image1, buffer1 = captureTestImage(cameraSettings, testWidth, testHeight)
-image0, buffer0 = captureTestImage(cameraSettings, testWidth, testHeight)
-
-# Reset last capture time
-lastCapture = time.time()
-
-while (True):
-
-    # Get comparison image
-    image2, buffer2 = captureTestImage(cameraSettings, testWidth, testHeight)
-
+# Beregnerer diff og gir debug bilde
+def GetDiffDbImg(buffer1, buffer2):
+    takePicture = False
     # Count changed pixels
     changedPixels = 0
     cp5 = 0
     cp10 = 0
     cp15 = 0
-    maxDiff = 0
-    takePicture = False
+    maxDiff =  0
 
     if (debugMode): # in debug mode, save a bitmap-file with marked changed pixels and with visible testarea-borders
         debugimage = Image.new("RGB",(testWidth, testHeight))
@@ -184,12 +167,45 @@ while (True):
             
         if ((debugMode == False) and (changedPixels > sensitivity)):
             break  # break the z loop
+    
+    print "Change: %s changed pixel, maxDiff = %s, 5 = %s 10 = %s, 15 = %s" % (changedPixels, maxDiff, cp5, cp10, cp15)
+    if (debugMode):
+        return changedPixels, takePicture, debugimage
+    else:
+        return changedPixels, takePicture, 0
+
+
+# ************** START ****************
+##pygame.mixer.init()
+##s = pygame.mixer.Sound("/home/pi/python_games/match1.wav")
+##pygame.mixer.music.set_volume(0.1)
+##s.play()
+##s.stop()
+
+# Get first image
+image1, buffer1 = captureTestImage(cameraSettings, testWidth, testHeight)
+image0, buffer0 = captureTestImage(cameraSettings, testWidth, testHeight)
+
+# Reset last capture time
+lastCapture = time.time()
+
+while (True):
+
+    # Get comparison image
+    image2, buffer2 = captureTestImage(cameraSettings, testWidth, testHeight)
+    
+    takePicture = False
 
     if (debugMode):
+        changedPixels, takePicture, debugimage = GetDiffDbImg(buffer0, buffer2)
+        debugimage.save(filepath + "/debug0.bmp") # save debug image as bmp
+        print "debug0.bmp saved, %s changed pixel" % (changedPixels)
+
+    changedPixels, takePicture, debugimage = GetDiffDbImg(buffer1, buffer2)
+    if (debugMode):
         debugimage.save(filepath + "/debug.bmp") # save debug image as bmp
-        print "debug.bmp saved, %s changed pixel, maxDiff = %s, 5 = %s 10 = %s, 15 = %s" % (changedPixels, maxDiff, cp5, cp10, cp15)
-    # else:
-    #     print "%s changed pixel" % changedPixels
+        print "debug.bmp saved, %s changed pixel" % (changedPixels)
+
 
     # Check force capture
     if forceCapture:
