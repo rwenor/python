@@ -35,13 +35,13 @@ diskSpaceToReserve = 40 * 1024 * 1024 # Keep 40 mb free on disk
 cameraSettings = "-hf -vf" # -awb shade -ISO 1600 -ss 100000"
 
 # settings of the photos to save
-saveWidth   = 1296
-saveHeight  = 972
+saveWidth   = 1296 >> 1
+saveHeight  = 972 >> 1
 saveQuality = 15 # Set jpeg quality (0 to 100)
 
 # Test-Image settings
-testWidth = 1000
-testHeight = 750
+testWidth = 1296 >> 1
+testHeight = 972 >> 1
 
 # this is the default setting, if the whole image should be scanned for changed pixel
 testAreaCount = 1
@@ -73,7 +73,7 @@ detectMotion = True    # If false object are detekted, continues pict
 
 # Capture a small test image (for motion detection)
 def captureTestImage(settings, width, height):
-    command = "raspistill %s -w %s -h %s -t 200 -e bmp -n -o -" % (settings, width, height)
+    command = "raspistill %s -w %s -h %s -t 200 -e jpg -n -o -" % (settings, width, height)
     imageData = StringIO.StringIO()
     imageData.write(subprocess.check_output(command, shell=True))
     imageData.seek(0)
@@ -83,11 +83,12 @@ def captureTestImage(settings, width, height):
     return im, buffer
 
 # Save a full size image to disk
-def saveImage(settings, width, height, quality, diskSpaceToReserve):
+def saveImage2(image2, diskSpaceToReserve):
     keepDiskSpaceFree(diskSpaceToReserve)
     time = datetime.now()
     filename = filepath + "/" + filenamePrefix + "-%04d%02d%02d-%02d%02d%02d.jpg" % (time.year, time.month, time.day, time.hour, time.minute, time.second)
-    subprocess.call("raspistill %s -w %s -h %s -t 200 -e jpg -q %s -n -o %s" % (settings, width, height, quality, filename), shell=True)
+    #subprocess.call("raspistill %s -w %s -h %s -t 200 -e jpg -q %s -n -o %s" % (settings, width, height, quality, filename), shell=True)
+    image2.save(filename) # save debug image as bmp
     print "Captured %s" % filename
 
 # Keep free space above given level
@@ -132,18 +133,20 @@ def GetDiffDbImg(buffer1, buffer2):
     maxDiff =  0
 
     if (debugMode): # in debug mode, save a bitmap-file with marked changed pixels and with visible testarea-borders
-        debugimage = Image.new("RGB",(testWidth, testHeight))
+        debugimage = Image.new("RGB",((testWidth >> 3) + 1, (testHeight >> 3) + 1))
+        print 'TestImg: %s, %s' % (((testWidth >> 3) + 1, (testHeight >> 3) + 1))
         debugim = debugimage.load()
 
     for z in xrange(0, testAreaCount): # = xrange(0,1) with default-values = z will only have the value of 0 = only one scan-area = whole picture
-        for x in xrange(testBorders[z][0][0]-1, testBorders[z][0][1]): # = xrange(0,100) with default-values
-            for y in xrange(testBorders[z][1][0]-1, testBorders[z][1][1]):   # = xrange(0,75) with default-values; testBorders are NOT zero-based, buffer1[x,y] are zero-based (0,0 is top left of image, testWidth-1,testHeight-1 is botton right)
+        for x in xrange(testBorders[z][0][0]-1, testBorders[z][0][1], 8): # = xrange(0,100) with default-values
+            for y in xrange(testBorders[z][1][0]-1, testBorders[z][1][1], 8):   # = xrange(0,75) with default-values; testBorders are NOT zero-based, buffer1[x,y] are zero-based (0,0 is top left of image, testWidth-1,testHeight-1 is botton right)
 
                 if (debugMode):
-                    debugim[x,y] = buffer2[x,y]
+                    #print '%s, %s > %s, %s' % (x, y, x >> 3, y >> 3) 
+                    debugim[x >> 3, y >> 3] = buffer2[x,y]
                     if ((x == testBorders[z][0][0]-1) or (x == testBorders[z][0][1]-1) or (y == testBorders[z][1][0]-1) or (y == testBorders[z][1][1]-1)):
                         # print "Border %s %s" % (x,y)
-                        debugim[x,y] = (0, 0, 255) # in debug mode, mark all border pixel to blue
+                        debugim[x >> 8, y >> 8] = (0, 0, 255) # in debug mode, mark all border pixel to blue
 
 
                 # Just check green channel as it's the highest quality channel
@@ -164,10 +167,10 @@ def GetDiffDbImg(buffer1, buffer2):
                     cp15 += 1
                     
                     if (debugMode):
-                        debugim[x,y] = (buffer2[x,y][0], buffer2[x,y][1] + pixdiff << 1, buffer2[x,y][2]) # in debug mode, mark all changed pixel to green
+                        debugim[x >> 3,y >> 3] = (buffer2[x,y][0], buffer2[x,y][1] + pixdiff << 1, buffer2[x,y][2]) # in debug mode, mark all changed pixel to green
                 else:
                     if ((debugMode) and (pixdiff > 2)):
-                        debugim[x,y] = (buffer2[x,y][0], (buffer2[x,y][1] >> 0) + (pixdiff << 1), buffer2[x,y][2]) # in debug mode, mark all changed pixel to green
+                        debugim[x >> 3,y >> 3] = (buffer2[x,y][0], (buffer2[x,y][1] >> 0) + (pixdiff << 1), buffer2[x,y][2]) # in debug mode, mark all changed pixel to green
                 
 
 
@@ -216,16 +219,24 @@ while (True):
     
     takePicture = False
 
+    # Objekter?
     if (debugMode):
-        changedPixels, takePicture, debugimage = GetDiffDbImg(buffer0, buffer2)
+        changedPixels0, takePicture0, debugimage = GetDiffDbImg(buffer0, buffer2)
         debugimage.save(filepath + "/debug0.bmp") # save debug image as bmp
-        print "debug0.bmp saved, %s changed pixel" % (changedPixels)
+        print "debug0.bmp saved, %s changed pixel" % (changedPixels0)
 
+    # Bevegelse?
     changedPixels, takePicture, debugimage = GetDiffDbImg(buffer1, buffer2)
     if (debugMode):
         debugimage.save(filepath + "/debug.bmp") # save debug image as bmp
         print "debug.bmp saved, %s changed pixel" % (changedPixels)
 
+    if takePicture:
+        takePicture = takePicture0 # Objekt i bilde?
+    elif changedPixels == 0: # Ingen bevegelse
+        image0 = image2
+        buffer0 = buffer2        
+        
 
     # Check force capture
     if forceCapture:
@@ -234,7 +245,9 @@ while (True):
 
     if takePicture:
         lastCapture = time.time()
-        saveImage(cameraSettings, saveWidth, saveHeight, saveQuality, diskSpaceToReserve)
+        #image2.save(filepath + "/cam.jpg") # save debug image as bmp
+        saveImage2(image2, diskSpaceToReserve)
+        #saveImage(cameraSettings, saveWidth, saveHeight, saveQuality, diskSpaceToReserve)
 #        s.play()
 
     # Swap comparison buffers
