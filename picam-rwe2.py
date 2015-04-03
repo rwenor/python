@@ -23,8 +23,8 @@ import pygame
 # diskSpaceToReserve - Delete oldest images to avoid filling disk. How much byte to keep free on disk.
 # cameraSettings     - "" = no extra settings; "-hf" = Set horizontal flip of image; "-vf" = Set vertical flip;
 #                      "-hf -vf" = both horizontal and vertical flip
-threshold = 30     # 10 diff
-sensitivity = 20   # 20 cnt
+threshold = 40     # 10 diff
+sensitivity = 40   # 20 cnt
 
 forceCapture = True
 forceCaptureTime = 60 * 60 # Once an hour
@@ -45,6 +45,7 @@ testHeight = 972 >> 1
 
 # this is the default setting, if the whole image should be scanned for changed pixel
 testAreaCount = 1
+#testBorders = [ [[1,testWidth],[testHeight,testHeight]] ]  # [ [[start pixel on left side,end pixel on right side],[start pixel on top side,stop pixel on bottom side]] ]
 testBorders = [ [[1,testWidth],[1,testHeight]] ]  # [ [[start pixel on left side,end pixel on right side],[start pixel on top side,stop pixel on bottom side]] ]
 # testBorders are NOT zero-based, the first pixel is 1 and the last pixel is testWith or testHeight
 
@@ -73,7 +74,7 @@ detectMotion = True    # If false object are detekted, continues pict
 
 # Capture a small test image (for motion detection)
 def captureTestImage(settings, width, height):
-    command = "raspistill %s -w %s -h %s -t 200 -e jpg -n -o -" % (settings, width, height)
+    command = "raspistill %s -w %s -h %s -t 200 -e jpg  -o -" % (settings, width, height)
     imageData = StringIO.StringIO()
     imageData.write(subprocess.check_output(command, shell=True))
     imageData.seek(0)
@@ -123,7 +124,7 @@ def PTD(str):
 
 # Beregnerer diff og gir debug bilde
 def GetDiffDbImg(buffer1, buffer2):
-    PTD('GetDiffDbImg')
+    #PTD('GetDiffDbImg')
     takePicture = False
     # Count changed pixels
     changedPixels = 0
@@ -134,7 +135,7 @@ def GetDiffDbImg(buffer1, buffer2):
 
     if (debugMode): # in debug mode, save a bitmap-file with marked changed pixels and with visible testarea-borders
         debugimage = Image.new("RGB",((testWidth >> 3) + 1, (testHeight >> 3) + 1))
-        print 'TestImg: %s, %s' % (((testWidth >> 3) + 1, (testHeight >> 3) + 1))
+        #print 'TestImg: %s, %s' % (((testWidth >> 3) + 1, (testHeight >> 3) + 1))
         debugim = debugimage.load()
 
     for z in xrange(0, testAreaCount): # = xrange(0,1) with default-values = z will only have the value of 0 = only one scan-area = whole picture
@@ -186,7 +187,7 @@ def GetDiffDbImg(buffer1, buffer2):
         if ((debugMode == False) and (changedPixels > sensitivity)):
             break  # break the z loop
     
-    PTD('End')
+    #PTD('End')
     print "Change: %s changed pixel, maxDiff = %s, 5 = %s 10 = %s, 15 = %s" % (changedPixels, maxDiff, cp5, cp10, cp15)
     
     if (debugMode):
@@ -209,13 +210,14 @@ image0, buffer0 = captureTestImage(cameraSettings, testWidth, testHeight)
 
 # Reset last capture time
 lastCapture = time.time()
+noMotionCnt = 0
 
 while (True):
 
     # Get comparison image
-    PTD('CapTest')
+    PTD('Start')
     image2, buffer2 = captureTestImage(cameraSettings, testWidth, testHeight)
-    PTD('CapEnd')
+    PTD('Cap')
     
     takePicture = False
 
@@ -223,26 +225,30 @@ while (True):
     if (debugMode):
         changedPixels0, takePicture0, debugimage = GetDiffDbImg(buffer0, buffer2)
         debugimage.save(filepath + "/debug0.bmp") # save debug image as bmp
-        print "debug0.bmp saved, %s changed pixel" % (changedPixels0)
+        #print "debug0.bmp saved, %s changed pixel" % (changedPixels0)
 
     # Bevegelse?
     changedPixels, takePicture, debugimage = GetDiffDbImg(buffer1, buffer2)
     if (debugMode):
         debugimage.save(filepath + "/debug.bmp") # save debug image as bmp
-        print "debug.bmp saved, %s changed pixel" % (changedPixels)
+        #print "debug.bmp saved, %s changed pixel" % (changedPixels)
 
     if takePicture:
         takePicture = takePicture0 # Objekt i bilde?
-    elif changedPixels == 0: # Ingen bevegelse
-        image0 = image2
-        buffer0 = buffer2        
-        
+    elif changedPixels < 10: # Ingen bevegelse
+        noMotionCnt += 1
+        if (noMotionCnt > 4) and (changedPixels < changedPixels0):
+            image0 = image2  # Ny base
+            buffer0 = buffer2        
+    else:
+        noMotionCnt = 0
 
     # Check force capture
     if forceCapture:
         if time.time() - lastCapture > forceCaptureTime:
             takePicture = True
 
+    PTD('Pros')
     if takePicture:
         lastCapture = time.time()
         #image2.save(filepath + "/cam.jpg") # save debug image as bmp
@@ -254,3 +260,4 @@ while (True):
     if detectMotion:
         image1 = image2
         buffer1 = buffer2
+        PTD('Swap')
