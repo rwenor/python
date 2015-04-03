@@ -1,6 +1,7 @@
 import socket
 import sys
 import time
+import os 
 
 
 def PTD(str):
@@ -11,7 +12,47 @@ def PTD(str):
                                str) 
     PrintTimeCnt += 1
     PrintTimeDiffLast = time.time()
+
+
+
+def sm_add(fra, til, data):
+    try:
+        d = data.strip().split(' ')
+
+        data = 0
+        for val in d:
+            data += float(val)
+        data = str(data)
+
+    except:
+        data = 'ERR'
+
+    return data
+
     
+def sm_getCpuTemp(fra, til, data):
+    try:
+        res = os.popen('vcgencmd measure_temp').readline()
+        data = res.replace("temp=","").replace("'C\n","")
+            
+    except:
+        data = 'ERR'
+
+    return data
+
+
+def Disp_sm(fra, til, data):
+
+    if til == 'Til.Add':
+        data = sm_add(fra, til, data)
+    elif til == 'Til.CpuTemp':
+        data = sm_getCpuTemp(fra, til, data)
+    else:
+        data = 'ERR'
+
+    return data
+    
+
     
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -34,10 +75,18 @@ while True:
 
         # Receive the data in small chunks and retransmit it
         while True:
-            data = connection.recv(16)
+            data = connection.recv(200)
             print >>sys.stderr, 'received "%s"' % data
             if data:
-                print >>sys.stderr, 'sending data back to the client'
+                l = data.strip().split('\t')
+                if len(l) < 3:
+                    print "Err: ", l
+                    l[2] = 'NAK'
+                else:
+                    l[2] = Disp_sm(l[0], l[1], l[2])
+
+                #print >>sys.stderr, 'sending data back to the client'
+                data = l[1] + '\t' + l[0] + '\t' + l[2]
                 connection.sendall(data)
             else:
                 print >>sys.stderr, 'no more data from', client_address
