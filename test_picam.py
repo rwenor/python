@@ -9,6 +9,6 @@ camera = picamera.PiCamera()
 camera.resolution = (640, 480)
 
 for i in range(1, 11):
-    camera.capture(my_s, 'jpeg')
+    camera.capture(my_s, 'bmp')
     print i
     
