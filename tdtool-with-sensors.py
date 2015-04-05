@@ -166,11 +166,11 @@ def requestToken():
 	conn = httplib.HTTPConnection('api.telldus.com:80')
 	conn.request(request.http_method, '/oauth/requestToken', headers=request.to_header())
 
-        print "resp"
+	print "resp"
 	resp = conn.getresponse().read()
 	print "oaut1 ", resp
 	token = oauth.OAuthToken.from_string(resp)
-        print "print"
+	print "print"
 	
 	print 'Open the following url in your webbrowser:\nhttp://api.telldus.com/oauth/authorize?oauth_token=%s\n' % token.key
 	print 'After logging in and accepting to use this application run:\n%s --authenticate' % (sys.argv[0])
@@ -220,7 +220,7 @@ def saveConfig():
 
 def main(argv):
 
-        # print "start"
+	# print "start"
 	global config
 	if ('token' not in config or config['token'] == ''):
 		authenticate()
@@ -271,6 +271,6 @@ def main(argv):
 			doMethod(arg, TELLSTICK_DOWN)
 
 if __name__ == "__main__":
-        # print "Config: ", os.environ['HOME'] + '/.config/Telldus/tdtool.conf'
+	# print "Config: ", os.environ['HOME'] + '/.config/Telldus/tdtool.conf'
 	config = ConfigObj(os.environ['HOME'] + '/.config/Telldus/tdtool.conf')
 	main(sys.argv[1:])

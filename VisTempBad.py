@@ -6,39 +6,30 @@ import sys, getopt
 
 
 try:
-        opts, args = getopt.getopt(sys.argv[1:], 's:p:', \
-                                   ['tull=', 's=', 'param='])
+        opts, args = getopt.getopt(sys.argv[1:], 's', ['tull=', 's='])
 except getopt.GetoptError as err:
         print str(err)
         print "Feil args"
         #usage()
         sys.exit(2)
         
-#print opts
-#print args
+print opts
+print args
 saveFile = ''
-loadFile = 'TempLog.dat'
-param = 'Ute'
-param2 = 'Ute oppe'
-humStart = 0
-
 for o, a in opts:
-    if o in ('-s', '--s'):
+    if o == '-s':
+        saveFile = args[0]
+    elif o == '--s':
         saveFile = a
-    elif o in ('-p', '--param'):
-        param = a
-        if a == "Bad":
-            loadFile = "TempLog" + a + ".dat"
-            param2 = "Bad - gulv"
-            humStart = 20
+        
 
 data1 = []
 data2 = []
 data3 = []
 
 i = 0
-
-with open(loadFile, 'r') as f:
+#with open('temp.dat', 'r') as f:
+with open('TempLogBad.dat', 'r') as f:
     for line in f:
         i = i + 1
         if i < 3:
@@ -50,14 +41,14 @@ with open(loadFile, 'r') as f:
             continue
 
         #print "xLine ", i, l, len(l)
-        if l[0] == param:   # Bad eller Ute
+        if l[0] == 'Bad':
             data1.append( float( l[2] ))
         
-        if l[0] == param2:
+        if l[0] == 'Bad - gulv':
             if l[1] == 'temp':
                 data2.append( float( l[2] ))
             else:
-                data3.append( float( l[2] ) / 10.0 + humStart)
+                data3.append( float( l[2] ) / 10.0 + 20)
                 
 #print data
 #pl.figure(1)
