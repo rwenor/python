@@ -1,7 +1,7 @@
 #!/bin/bash
 sleep 2
 
-cd /home/pi/Python
+cd /home/pi/python
 python tdtool-with-sensors.py -d 2367754
 python tdtool-with-sensors.py -d 2777935
 
