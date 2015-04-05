@@ -1,0 +1,6 @@
+*.jpg
+*.png
+*.dat
+*.log
+*.h264
+__pycache__
