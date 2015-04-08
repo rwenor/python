@@ -58,7 +58,8 @@ def Disp_sm(fra, til, data):
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Bind the socket to the port
-server_address = ('10.0.0.130', 10000)
+#server_address = ('10.0.0.130', 10000)
+server_address = ('', 10000)
 print >>sys.stderr, 'starting up on %s port %s' % server_address
 sock.bind(server_address)
 
