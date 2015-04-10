@@ -7,12 +7,15 @@
 # type "sudo apt-get install python-imaging-tk" in an terminal window to do this
 
 import StringIO
+import io
 import subprocess
 import os
 import time
 from datetime import datetime
 from PIL import Image
 import pygame
+import picamera
+
 
 # Motion detection settings:
 # Threshold          - how much a pixel has to change by to be marked as "changed"
@@ -68,15 +71,25 @@ testBorders = [ [[1,testWidth],[1,testHeight]] ]  # [ [[start pixel on left side
 
 # in debug mode, a file debug.bmp is written to disk with marked changed pixel an with marked border of scan-area
 # debug mode should only be turned on while testing the parameters above
-#debugMode = False       # False or True
-debugMode = True       # False or True
+debugMode = False       # False or True
+#debugMode = True       # False or True
 detectMotion = True    # If false object are detekted, continues pict
+
+
+camera = picamera.PiCamera()
+camera.vflip = True
+camera.hflip = True
+camera.resolution = (640, 480)
+camera.start_preview()
+time.sleep(2)
+
 
 # Capture a small test image (for motion detection)
 def captureTestImage(settings, width, height):
-    command = "raspistill %s -w %s -h %s -t 200 -e jpg  -o -" % (settings, width, height)
-    imageData = StringIO.StringIO()
-    imageData.write(subprocess.check_output(command, shell=True))
+    #command = "raspistill %s -w %s -h %s -t 200 -e jpg  -o -" % (settings, width, height)
+    imageData = io.BytesIO()
+    camera.capture(imageData, 'jpeg')
+    # imageData.write(subprocess.check_output(command, shell=True))
     imageData.seek(0)
     im = Image.open(imageData)
     buffer = im.load()
@@ -222,8 +235,8 @@ while (True):
     takePicture = False
 
     # Objekter?
+    changedPixels0, takePicture0, debugimage = GetDiffDbImg(buffer0, buffer2)
     if (debugMode):
-        changedPixels0, takePicture0, debugimage = GetDiffDbImg(buffer0, buffer2)
         debugimage.save(filepath + "/debug0.bmp") # save debug image as bmp
         #print "debug0.bmp saved, %s changed pixel" % (changedPixels0)
 
