@@ -1,34 +1,78 @@
 import io
+import os
 import time
 import picamera
 from PIL import Image
 import threading
 import logging
+import multiprocessing
+from datetime import datetime
 
+
+# printTimeDiff
+PrintTimeDiffLast = time.time()
+PrintTimeCnt = 0
+
+def PTD(str):
+    global PrintTimeDiffLast
+    global PrintTimeCnt
+    logging.debug('PTD%4s: %6s - %s' %  (PrintTimeCnt, \
+                               int((time.time() - PrintTimeDiffLast)*1000), \
+                               str) \
+                  )
+    
+    PrintTimeCnt += 1
+    PrintTimeDiffLast = time.time()
+
+
+
+# debugPrint - Using logging
 deb_time = time.time()
-
 logging.basicConfig(level=logging.DEBUG,
                     format='(%(threadName)-10s) %(message)s',
                     )
-
-# Test-Image settings
-testWidth = 640
-testHeight = 480
-
 def dprt(dstr):
     diff = time.time() - deb_time
     logging.debug(str(diff) + ': ' + dstr)
 
 
+
+# Test-Image settings
+imgCnt = 50
+testWidth = 640
+testHeight = 480
+filepath = "/var/www/picam"
+filenamePrefix = "cap"
+
 debugMode = True       # False or True
 testAreaCount = 1
 testBorders = [ [[1,testWidth],[1,testHeight]] ]  # [ [[start pixel on left side,end pixel on right side],[start pixel on top side,stop pixel on bottom side]] ]
-threshold = 40     # 10 diff
-sensitivity = 40   # 20 cnt
+threshold = 20     # 10 diff
+sensitivity = 30   # 20 cnt
+
+
+
+# Get available disk space
+def getFreeSpace():
+    st = os.statvfs(filepath + "/")
+    du = st.f_bavail * st.f_frsize
+    return du
+
+
+# Keep free space above given level
+def keepDiskSpaceFree(bytesToReserve):
+    if (getFreeSpace() < bytesToReserve):
+        for filename in sorted(os.listdir(filepath + "/")):
+            if filename.startswith(filenamePrefix) and filename.endswith(".jpg"):
+                os.remove(filepath + "/" + filename)
+                print "Deleted %s/%s to avoid filling disk" % (filepath,filename)
+                if (getFreeSpace() > bytesToReserve):
+                    return
+
 
 # Beregnerer diff og gir debug bilde
 def GetDiffDbImg(buffer1, buffer2):
-    #PTD('GetDiffDbImg')
+    PTD('GetDiffDbImg')
     takePicture = False
     # Count changed pixels
     changedPixels = 0
@@ -91,62 +135,97 @@ def GetDiffDbImg(buffer1, buffer2):
         if ((debugMode == False) and (changedPixels > sensitivity)):
             break  # break the z loop
     
-    #PTD('End')
+    PTD('End')
     dprt( "Change: %s changed pixel, maxDiff = %s, 5 = %s 10 = %s, 15 = %s" % (changedPixels, maxDiff, cp5, cp10, cp15))
     
     if (debugMode):
         return changedPixels, takePicture, debugimage
     else:
         return changedPixels, takePicture, 0
-    
+
+diskSpaceToReserve = 40 * 1024 * 1024 # Keep 40 mb free on disk
 buf0 = None
 buf1 = None
+
+
+# Save a full size image to disk
+def saveImage2(image2, diskSpaceToReserve, imgNr):
+    keepDiskSpaceFree(diskSpaceToReserve)
+    time = datetime.now()
+    filename = filepath + "/" + filenamePrefix + "-%04d%02d%02d-%02d%02d%02d-%04d.jpg" \
+               % (time.year, time.month, time.day, time.hour, time.minute, time.second, imgNr)
+    #subprocess.call("raspistill %s -w %s -h %s -t 200 -e jpg -q %s -n -o %s" % (settings, width, height, quality, filename), shell=True)
+    image2.save(filename) # save debug image as bmp
+    dprt( "Captured %s" % filename )
+    
 
 def img_load(stream,i):
     global buf0
     global buf1
-    
+
+    dprt('inn')
     img = Image.open(stream)
     buffer = img.load()
     if i == 0:
         buf0 = buffer
         buf1 = buffer
+        img0 = img
+        img1 = img
             
-    dprt('Loaded')
+    #dprt('Loaded')
     changedPixels0, takePicture0, debugimage = GetDiffDbImg(buf1, buffer)
-    dprt('Moved')
-    
+    #dprt('Moved' + str(takePicture0))
+    if takePicture0:
+        saveImage2(img, diskSpaceToReserve, i)
+    dprt('ut')
 
 
 def outputs():
-    stream = io.BytesIO()
-    for i in range(40):
+    stream1 = io.BytesIO()
+    stream2 = io.BytesIO()
+    stream = stream2
+    
+    for i in range(imgCnt):
+                 
+            
         # This returns the stream for the camera to capture to
         yield stream
+        
         # Once the capture is complete, the loop continues here
         # (read up on generator functions in Python to understand
         # the yield statement). Here you could do some processing
         # on the image...
         stream.seek(0)
         
-        dprt(str(i))
+        #dprt(str(i))
 
 
         t = threading.Thread(target=img_load, args=(stream,i,))
+        #t = multiprocessing.Process(target=img_load, args=(stream,i,))
         t.start()
-        #time.sleep(0.01) # let tread start...
+        time.sleep(0.01) # let tread start...
         
         # Finally, reset the stream for the next capture
-        dprt('Stream reset')
+        if i % 2:
+            stream = stream1
+            dprt('Stream1 reset')
+        else:
+            stream = stream2
+            dprt('Stream2 reset')
+            
         stream.seek(0)
         stream.truncate()
 
+multiprocessing.log_to_stderr(logging.DEBUG)
 with picamera.PiCamera() as camera:
     camera.resolution = (640, 480)
     camera.framerate = 80
+    camera.vflip = True
+    camera.hflip = True
+    
     time.sleep(2)
     start = time.time()
     camera.capture_sequence(outputs(), 'jpeg', use_video_port=True)
     finish = time.time()
-    print('Captured 40 images at %.2ffps' % (40 / (finish - start)))
+    print('Captured 40 images at %.2ffps' % (imgCnt / (finish - start)))
     
