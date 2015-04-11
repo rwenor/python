@@ -38,7 +38,7 @@ def dprt(dstr):
 
 
 # Test-Image settings
-imgCnt = 50
+imgCnt = 5
 testWidth = 640
 testHeight = 480
 filepath = "/var/www/picam"
@@ -144,8 +144,8 @@ def GetDiffDbImg(buffer1, buffer2):
         return changedPixels, takePicture, 0
 
 diskSpaceToReserve = 40 * 1024 * 1024 # Keep 40 mb free on disk
-buf0 = None
-buf1 = None
+#buf0 = None
+#buf1 = None
 
 
 # Save a full size image to disk
@@ -159,28 +159,28 @@ def saveImage2(image2, diskSpaceToReserve, imgNr):
     dprt( "Captured %s" % filename )
     
 
-def img_load(stream,i):
-    global buf0
-    global buf1
+def img_load(stream,i,q, buf):
+    #global buf0
+    #global buf1
 
     dprt('inn')
     img = Image.open(stream)
     buffer = img.load()
     if i == 0:
-        buf0 = buffer
+        #buf0 = buffer
         buf1 = buffer
-        img0 = img
+        #img0 = img
         img1 = img
+    else:
+        buf1 = q.get()
+
+    q.put(buffer)
             
-    #dprt('Loaded')
+    dprt('Loaded')
     changedPixels0, takePicture0, debugimage = GetDiffDbImg(buf1, buffer)
     #dprt('Moved' + str(takePicture0))
     if takePicture0:
         saveImage2(img, diskSpaceToReserve, i)
-        
-    
-    buf1 = buffer
-    img1 = img    
     dprt('ut')
 
 
@@ -202,12 +202,12 @@ def outputs():
         stream.seek(0)
         
         #dprt(str(i))
-        time.sleep(0.001) # let tread stop...
 
-        t = threading.Thread(target=img_load, args=(stream,i,))
+
+        t = threading.Thread(target=img_load, args=(stream,i,q,buf))
         #t = multiprocessing.Process(target=img_load, args=(stream,i,))
         t.start()
-        time.sleep(0.001) # let tread start...
+        time.sleep(0.01) # let tread start...
         
         # Finally, reset the stream for the next capture
         if i % 2:
@@ -221,15 +221,14 @@ def outputs():
         stream.truncate()
 
 
-# *** MAIN ***
 if __name__ == "__main__":
     
     multiprocessing.log_to_stderr(logging.DEBUG)
-#    q = multiprocessing.Queue()
+    q = multiprocessing.Queue()
 
     with picamera.PiCamera() as camera:
         camera.resolution = (640, 480)
-        camera.framerate = 80
+        camera.framerate = 1
         camera.vflip = True
         camera.hflip = True
         

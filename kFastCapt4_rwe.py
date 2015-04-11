@@ -7,6 +7,20 @@ import threading
 import logging
 import multiprocessing
 from datetime import datetime
+#import getch
+import pygame
+
+def getch():
+  import sys, tty, termios
+  old_settings = termios.tcgetattr(0)
+  new_settings = old_settings[:]
+  new_settings[3] &= ~termios.ICANON
+  try:
+    termios.tcsetattr(0, termios.TCSANOW, new_settings)
+    ch = sys.stdin.read(1)
+  finally:
+    termios.tcsetattr(0, termios.TCSANOW, old_settings)
+  return ch
 
 
 # printTimeDiff
@@ -50,7 +64,7 @@ testBorders = [ [[1,testWidth],[1,testHeight]] ]  # [ [[start pixel on left side
 threshold = 20     # 10 diff
 sensitivity = 30   # 20 cnt
 
-
+do_quit = False
 
 # Get available disk space
 def getFreeSpace():
@@ -188,10 +202,12 @@ def outputs():
     stream1 = io.BytesIO()
     stream2 = io.BytesIO()
     stream = stream2
-    
+
+#    i = 0
     for i in range(imgCnt):
-                 
-            
+    #while i <> imgCnt:
+    #    i += 1
+                           
         # This returns the stream for the camera to capture to
         yield stream
         
@@ -220,12 +236,31 @@ def outputs():
         stream.seek(0)
         stream.truncate()
 
+        if do_quit:
+            break
+
+
+def keyLoop():
+    global do_quit
+    
+    while 1:
+        key = getch() #raw_input('Input:')
+        #keyboard.read(1000, timeout = 0)
+        if len(key):
+            print key
+            if key == 'q':
+                do_quit = True
+                break
 
 # *** MAIN ***
 if __name__ == "__main__":
     
+    pygame.init()
     multiprocessing.log_to_stderr(logging.DEBUG)
 #    q = multiprocessing.Queue()
+
+    k = threading.Thread(target=keyLoop, args=())
+    k.start()
 
     with picamera.PiCamera() as camera:
         camera.resolution = (640, 480)
