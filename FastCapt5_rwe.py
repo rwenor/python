@@ -159,7 +159,7 @@ def saveImage2(image2, diskSpaceToReserve, imgNr):
     dprt( "Captured %s" % filename )
     
 
-def img_load(stream,i,q, buf):
+def img_load(stream,i,q):
     #global buf0
     #global buf1
 
@@ -167,24 +167,31 @@ def img_load(stream,i,q, buf):
     img = Image.open(stream)
     buffer = img.load()
     if i == 0:
+	dprt('0')
         #buf0 = buffer
         buf1 = buffer
         #img0 = img
         img1 = img
     else:
+	dprt('get?')
         buf1 = q.get()
-
+ 
+    dprt('put?')
     q.put(buffer)
+    dprt('put?')
             
     dprt('Loaded')
     changedPixels0, takePicture0, debugimage = GetDiffDbImg(buf1, buffer)
-    #dprt('Moved' + str(takePicture0))
+    dprt('Moved' + str(takePicture0))
+#    q.task_done()
+
     if takePicture0:
         saveImage2(img, diskSpaceToReserve, i)
     dprt('ut')
 
 
 def outputs():
+    global q
     stream1 = io.BytesIO()
     stream2 = io.BytesIO()
     stream = stream2
@@ -201,10 +208,10 @@ def outputs():
         # on the image...
         stream.seek(0)
         
-        #dprt(str(i))
+        dprt(str(i))
 
 
-        t = threading.Thread(target=img_load, args=(stream,i,q,buf))
+        t = threading.Thread(target=img_load, args=(stream,i,q))
         #t = multiprocessing.Process(target=img_load, args=(stream,i,))
         t.start()
         time.sleep(0.01) # let tread start...

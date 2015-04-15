@@ -23,14 +23,14 @@ def getch():
   return ch
 
 
-no_deb = True
+no_deb = False #True
 
 # printTimeDiff
 PrintTimeDiffLast = time.time()
 PrintTimeCnt = 0
 
-def PTD(str):
-    if no_deb:
+def PTD(str, f = False):
+    if no_deb and not f:
         return
     global PrintTimeDiffLast
     global PrintTimeCnt
@@ -49,8 +49,8 @@ deb_time = time.time()
 logging.basicConfig(level=logging.DEBUG,
                     format='(%(threadName)-10s) %(message)s',
                     )
-def dprt(dstr):
-    if no_deb:
+def dprt(dstr, f = False):
+    if no_deb and not f:
         return
 
     diff = int((time.time() - deb_time)*1000)
@@ -180,12 +180,19 @@ def saveImage2(image2, diskSpaceToReserve, imgNr):
     dprt( "Captured %s" % filename )
     
 
-def img_load(stream,i):
+def img_load(q, stream,i):
     global buf0
     global buf1
 
     dprt('Inn ' + str( 1 + (i % 2)) )
+
+##    print "stream = ", stream
+    stream = q.get()
+##    print "stream ?= ", stream
+
     img = Image.open(stream)
+    #q.task_done()
+    
     buffer = img.load()
     if i == 0:
         buf0 = buffer
@@ -216,9 +223,10 @@ def outputs():
     for i in range(imgCnt):
     #while i <> imgCnt:
     #    i += 1
+        stream = io.BytesIO()
                            
         # This returns the stream for the camera to capture to
-        PTD('Capt')
+        PTD('Capt ' + str(i), True)
         yield stream
 
         PTD('Prep')
@@ -231,21 +239,22 @@ def outputs():
         #dprt(str(i))
         #time.sleep(0.001) # let tread stop...
 
-        t = threading.Thread(target=img_load, args=(stream,i,))
+        queue.put(stream)
+        t = threading.Thread(target=img_load, args=(queue, stream,i,))
         #t = multiprocessing.Process(target=img_load, args=(stream,i,))
         t.start()
-        #time.sleep(0.001) # let tread start...
+        time.sleep(0.001) # let tread start...
         
         # Finally, reset the stream for the next capture
-        if i % 2:
-            stream = stream1
-            PTD('Stream1 reset')
-        else:
-            stream = stream2
-            PTD('Stream2 reset')
-            
-        stream.seek(0)
-        stream.truncate()
+##        if i % 2:
+##            stream = stream1
+##            PTD('Stream1 reset')
+##        else:
+##            stream = stream2
+##            PTD('Stream2 reset')
+##            
+##        stream.seek(0)
+##        stream.truncate()
 
         if do_quit:
             break
@@ -270,6 +279,8 @@ if __name__ == "__main__":
     
     pygame.init()
     multiprocessing.log_to_stderr(logging.DEBUG)
+    queue = multiprocessing.Queue()
+    
 #    q = multiprocessing.Queue()
 
     k = threading.Thread(target=keyLoop, args=())
@@ -286,5 +297,6 @@ if __name__ == "__main__":
         camera.capture_sequence(outputs(), 'jpeg', use_video_port=True)
         finish = time.time()
         print('Captured 40 images at %.2ffps' % (imgCnt / (finish - start)))
-    
 
+    k.join()
+    print 'End?'
