@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import io
 import os
 import time
@@ -34,10 +36,11 @@ def PTD(str, f = False):
         return
     global PrintTimeDiffLast
     global PrintTimeCnt
-    logging.debug('PTD%4s: %6s - %s' %  (PrintTimeCnt, \
+    diff = int((time.time() - deb_time)*1000)
+    
+    logging.debug('%8s: %6s - %s' %  (diff, \
                                int((time.time() - PrintTimeDiffLast)*1000), \
-                               str) \
-                  )
+                               str) )
     
     PrintTimeCnt += 1
     PrintTimeDiffLast = time.time()
@@ -180,53 +183,66 @@ def saveImage2(image2, diskSpaceToReserve, imgNr):
     dprt( "Captured %s" % filename )
     
 
-def img_load(q, stream,i):
+def img_load(q, qr, i):
     global buf0
     global buf1
 
-    dprt('Inn ' + str( 1 + (i % 2)) )
+    while True: 
+      dprt('Inn ' + str(i) )
 
-##    print "stream = ", stream
-    stream = q.get()
-##    print "stream ?= ", stream
-
-    img = Image.open(stream)
-    #q.task_done()
-    
-    buffer = img.load()
-    if i == 0:
-        buf0 = buffer
-        buf1 = buffer
-        img0 = img
-        img1 = img
-            
-    dprt('loaded ')
-    changedPixels0, takePicture0, debugimage = GetDiffDbImg(buf1, buffer)
-    #dprt('Moved' + str(takePicture0))
-    if takePicture0:
-        saveImage2(img, diskSpaceToReserve, i)
+  ##    print "stream = ", stream
+      stream = q.get()
+      if stream is None:
+        dprt('Exit')
+        break
         
-    
-    buf1 = buffer
-    img1 = img    
-    dprt('Ut ' + str( 1 + (i % 2)) ) 
+      print "stream ?= ", stream
+
+      img = Image.open(stream)
+      #q.task_done()
+      
+      buffer = img.load()
+      if i == 0:
+          buf0 = buffer
+          buf1 = buffer
+          img0 = img
+          img1 = img
+              
+      dprt('loaded ')
+      changedPixels0, takePicture0, debugimage = GetDiffDbImg(buf1, buffer)
+      dprt('Moved' + str(takePicture0))
+      if takePicture0:
+          saveImage2(img, diskSpaceToReserve, i)
+          
+      buf1 = buffer
+      img1 = img
+      qr.put(stream) # Klar til  brukes på nytt
+      dprt('Ut ' + str( i ) )
+      
 
 
 def outputs():
     global do_quit
 
-    stream1 = io.BytesIO()
-    stream2 = io.BytesIO()
-    stream = stream2
-
+    PTD('Start')
+    
+    # Enqueue jobs
+    num_jobs = 2
+    for i in xrange(num_jobs):
+        queue_ret.put(io.BytesIO())
+        
+##    stream1 = io.BytesIO()
+##    stream2 = io.BytesIO()
+##    stream = stream2
+        
+    stream = queue_ret.get()
 #    i = 0
     for i in range(imgCnt):
     #while i <> imgCnt:
     #    i += 1
-        stream = io.BytesIO()
                            
         # This returns the stream for the camera to capture to
-        PTD('Capt ' + str(i), True)
+        PTD('Capt ' + str(i))
         yield stream
 
         PTD('Prep')
@@ -239,27 +255,24 @@ def outputs():
         #dprt(str(i))
         #time.sleep(0.001) # let tread stop...
 
-        queue.put(stream)
-        t = threading.Thread(target=img_load, args=(queue, stream,i,))
-        #t = multiprocessing.Process(target=img_load, args=(stream,i,))
-        t.start()
-        time.sleep(0.001) # let tread start...
+        queue_in.put(stream) # Klar for analyse
         
-        # Finally, reset the stream for the next capture
-##        if i % 2:
-##            stream = stream1
-##            PTD('Stream1 reset')
-##        else:
-##            stream = stream2
-##            PTD('Stream2 reset')
-##            
-##        stream.seek(0)
-##        stream.truncate()
+#        t = threading.Thread(target=img_load, args=(queue_in, queue_ret,i,))
+        #t = multiprocessing.Process(target=img_load, args=(stream,i,))
+#        t.start()
+        #time.sleep(0.001) # let tread start...
+        
+        # Finally, get and reset stream for the next capture
+        stream = queue_ret.get()
+        stream.seek(0)
+        stream.truncate()
 
         if do_quit:
             break
           
     do_quit = True
+    time.sleep(3)
+    PTD('Stopp')
 
 
 def keyLoop():
@@ -269,22 +282,33 @@ def keyLoop():
         key = getch() #raw_input('Input:')
         #keyboard.read(1000, timeout = 0)
         if len(key):
-            print key
+            print 'Key -> ', key
             if key == 'q':
                 do_quit = True
+                print 'quit'
                 break
+
+    time.sleep(3)
+    print 'End keyloop'
+
 
 # *** MAIN ***
 if __name__ == "__main__":
     
     pygame.init()
     multiprocessing.log_to_stderr(logging.DEBUG)
-    queue = multiprocessing.Queue()
+
+    queue_in = multiprocessing.Queue()
+    queue_ret = multiprocessing.Queue()
     
 #    q = multiprocessing.Queue()
-
-    k = threading.Thread(target=keyLoop, args=())
-    k.start()
+# multiprocessing.Process , threading.Thread
+#    k = multiprocessing.Process(target=keyLoop, args=())
+#    k.start()
+    t = threading.Thread(target=img_load, args=(queue_in, queue_ret,1,))
+    t.start()
+    t2 = threading.Thread(target=img_load, args=(queue_in, queue_ret,2,))
+    t2.start()
 
     with picamera.PiCamera() as camera:
         camera.resolution = (640, 480)
@@ -296,7 +320,15 @@ if __name__ == "__main__":
         start = time.time()
         camera.capture_sequence(outputs(), 'jpeg', use_video_port=True)
         finish = time.time()
-        print('Captured 40 images at %.2ffps' % (imgCnt / (finish - start)))
+        print('Captured X images at %.2ffps' % (imgCnt / (finish - start)))
 
-    k.join()
+    #k.shutdown()
+    #k.join()
+
+    # Add a poison pill for each consumer
+    for i in xrange(2):
+        queue_in.put(None)
+        
     print 'End?'
+
+    time.sleep(3)
