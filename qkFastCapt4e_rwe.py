@@ -177,9 +177,11 @@ def saveImage2(image2, diskSpaceToReserve, imgNr):
     time = datetime.now()
     filename = filepath + "/" + filenamePrefix + "-%04d%02d%02d-%02d%02d%02d-%04d.jpg" \
                % (time.year, time.month, time.day, time.hour, time.minute, time.second, imgNr)
+    
     #subprocess.call("raspistill %s -w %s -h %s -t 200 -e jpg -q %s -n -o %s" % (settings, width, height, quality, filename), shell=True)
+    dprt( "Savefile" % filename, True )
     image2.save(filename) # save debug image as bmp
-    dprt( "Captured %s" % filename )
+    dprt( "Save done", True )
     
 
 def img_load(q, stream, i):
@@ -215,6 +217,7 @@ def img_load(q, stream, i):
     changedPixels0, takePicture0, debugimage = GetDiffDbImg(buf1, buffer)
     #dprt('Moved' + str(takePicture0))
     if takePicture0:
+        #dprt('Save ' + str(i))
         saveImage2(img, diskSpaceToReserve, i)
         
     
@@ -275,7 +278,7 @@ def outputs():
 ##        t.start()
 
         ret_i = queue2.get()
-        dprt('Done ' + str(ret_i) )
+        #dprt('Done ' + str(ret_i) )
         #time.sleep(0.001) # let tread start...
         
         # Finally, reset the stream for the next capture
