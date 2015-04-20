@@ -29,6 +29,8 @@ try:
         print('Image is %dx%d' % image.size)
         image.verify()
         print('Image is verified')
+        image.show()
+        print 'show'
 finally:
     connection.close()
     server_socket.close()

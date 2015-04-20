@@ -20,6 +20,8 @@ def mandelbrot( h,w, maxit=20 ):
         return divtime
 
 t = time.time()
-pylab.imshow(mandelbrot(800,800))
+map = mandelbrot(800,800)
 print time.time() - t
+
+pylab.imshow(map)
 pylab.show()
