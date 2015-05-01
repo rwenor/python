@@ -2,6 +2,8 @@ import socket
 import sys
 import time
 
+
+
 PrintTimeDiffLast = time.time()
 PrintTimeCnt = 0
 
@@ -25,6 +27,8 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_address = (sys.argv[1], 9999)
 print >>sys.stderr, 'connecting to %s port %s' % server_address
 sock.connect(server_address)
+
+sysName = sys.argv[2]
 
 
 def sm_func(fra, til, data):
@@ -56,16 +60,24 @@ try:
 ##    print 'Send ""'
 ##    sock.sendall('')
 ##    time.sleep(5)
-    print "Cpu temp: " + sm_func('Fra', 'Til.CpuTemp', '.')
-    print "Add: " + sm_func('Fra', 'Til.Add', '24 56 78')
+    print "RegName: " + sm_func(sysName, 'Serv.RegName', sysName)
+    print "Cpu temp: " + sm_func(sysName, 'Til.CpuTemp', '.')
+    print "Add: " + sm_func(sysName, 'Til.Add', '24 56 78')
     
     # Send data
-    message = "Fra\tTil.Add\t1 2 3 4 5 6 123.34"
+    message = sysName + "\tTil.Add\t1 2 3 4 5 6 123.34"
     print >>sys.stderr, 'sending "%s"' % message
 
     PTD("Send")
     sock.sendall(message)
     PTD("End")
+
+    t = time.time()
+    while time.time() < t + 10:
+        print "Cpu temp: " + sm_func(sysName, 'Til.CpuTemp', '.')
+        time.sleep(2)
+        
+    print "UnRegName: " + sm_func(sysName, 'Serv.UnRegName', sysName)
 
     # Look for the response
     amount_received = 0
@@ -76,7 +88,7 @@ try:
         amount_received += len(data)
         print >>sys.stderr, 'received "%s"' % data
 
-    PTD("Reseved")
+    PTD("Reseved: " + str(amount_received))
 finally:
     print >>sys.stderr, 'closing socket'
     sock.close()

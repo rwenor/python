@@ -1,7 +1,8 @@
 import socket
 import sys
 import time
-import os 
+import os
+import threading
 
 
 def PTD(str):
@@ -50,7 +51,9 @@ def Disp_sm(fra, til, data, con):
         data = sm_getCpuTemp(fra, til, data)
     elif til == 'Serv.RegName':
         conDict[data] = sms_client(data, '', con)
-        
+        data = 'AKK'
+    elif til == 'Serv.UnRegName':
+        del conDict[data]
         data = 'AKK'
     else:
         data = 'ERR'
@@ -69,6 +72,33 @@ class sms_client:
         self.con = con
         
 
+
+def con_recv(con, addr):
+    try:
+        print >>sys.stderr, 'connection from', addr
+        
+        while True:
+            data = con.recv(200)
+            print >>sys.stderr, 'received "%s"' % data
+            if data:
+                l = data.strip().split('\t')
+                if len(l) < 3:
+                    print "Err: ", l
+                    l[2] = 'NAK'
+                else:
+                    l[2] = Disp_sm(l[0], l[1], l[2], connection)
+
+                #print >>sys.stderr, 'sending data back to the client'
+                data = l[1] + '\t' + l[0] + '\t' + l[2]
+                con.sendall(data)
+            else:
+                print >>sys.stderr, 'no more data from', addr
+                break
+            
+    finally:
+        # Clean up the connection
+        con.close()
+    
     
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -85,34 +115,13 @@ sock.listen(1)
 while True:
     
     # Wait for a connection
-    print >>sys.stderr, 'waiting for a connection'
     print conDict
+    print >>sys.stderr, 'waiting for a connection'
+
     connection, client_address = sock.accept()
 
+    #con_recv(connection, client_address)
+    t = threading.Thread(target = con_recv, args = (connection, client_address))
+    t.start()
 
 
-    try:
-        print >>sys.stderr, 'connection from', client_address
-
-        # Receive the data in small chunks and retransmit it
-        while True:
-            data = connection.recv(200)
-            print >>sys.stderr, 'received "%s"' % data
-            if data:
-                l = data.strip().split('\t')
-                if len(l) < 3:
-                    print "Err: ", l
-                    l[2] = 'NAK'
-                else:
-                    l[2] = Disp_sm(l[0], l[1], l[2], connection)
-
-                #print >>sys.stderr, 'sending data back to the client'
-                data = l[1] + '\t' + l[0] + '\t' + l[2]
-                connection.sendall(data)
-            else:
-                print >>sys.stderr, 'no more data from', client_address
-                break
-            
-    finally:
-        # Clean up the connection
-        connection.close()
