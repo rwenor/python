@@ -1,21 +1,11 @@
 import socket
 import sys
 import time
+from sms_pi import *
 
 
 
-PrintTimeDiffLast = time.time()
-PrintTimeCnt = 0
 
-
-def PTD(str):
-    global PrintTimeDiffLast
-    global PrintTimeCnt
-    print 'PTD%4s: %6s - %s' %  (PrintTimeCnt, \
-                               int((time.time() - PrintTimeDiffLast)*1000), \
-                               str) 
-    PrintTimeCnt += 1
-    PrintTimeDiffLast = time.time()
 
 
   
@@ -24,7 +14,7 @@ def PTD(str):
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Connect the socket to the port where the server is listening
-server_address = (sys.argv[1], 9999)
+server_address = (sys.argv[1], 9998)
 print >>sys.stderr, 'connecting to %s port %s' % server_address
 sock.connect(server_address)
 
