@@ -60,13 +60,16 @@ def dprt(dstr, f = False):
 
 
 # Test-Image settings
-imgCnt = 17*60*10
+framerate = 30
+imgCnt = framerate*60
 testWidth = 640
 testHeight = 480
 filepath = "/var/www/picam"
 filenamePrefix = "cap"
 
-debugMode = True       # False or True
+debugMode = False       # False or True
+#debugMode = True       # False or True
+
 testAreaCount = 1
 testBorders = [ [[1,testWidth],[1,testHeight]] ]  # [ [[start pixel on left side,end pixel on right side],[start pixel on top side,stop pixel on bottom side]] ]
 threshold = 15     # 10 diff
@@ -157,9 +160,10 @@ def GetDiffDbImg(buffer1, buffer2):
         if ((debugMode == False) and (changedPixels > sensitivity)):
             break  # break the z loop
     
-    PTD('End')
-    PTD("Change: %s changed pixel, maxDiff = %s, 5 = %s 10 = %s, 15 = %s" % \
-         (changedPixels, maxDiff, cp5, cp10, cp15), True)
+    #PTD('End')
+    if (debugMode): 
+        PTD("Change: %s changed pixel, maxDiff = %s, 5 = %s 10 = %s, 15 = %s" % \
+           (changedPixels, maxDiff, cp5, cp10, cp15), True)
     
     if (debugMode):
         return changedPixels, takePicture, debugimage
@@ -336,7 +340,7 @@ if __name__ == "__main__":
 
     with picamera.PiCamera() as camera:
         camera.resolution = (640, 480)
-        camera.framerate = 20
+        camera.framerate = framerate
 #        camera.vflip = True
 #        camera.hflip = True
         
