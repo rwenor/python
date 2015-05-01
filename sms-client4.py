@@ -55,7 +55,7 @@ try:
         temp = sm_func(sysName, 'Serv.CpuTemp', '.')
         tempsum += ' ' + temp 
         print "Cpu temp: " + temp
-        print "Sum temp: " + sm_func(sysName, sysName + '.Add', tempsum)
+        print "Sum temp: " + sm_func(sysName, 'temp2' + '.Add', tempsum)
         time.sleep(2)
         
     print "UnRegName: " + sm_func(sysName, 'Serv.UnRegName', sysName)

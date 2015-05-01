@@ -56,8 +56,8 @@ while True:
 
     connection, client_address = sock.accept()
 
-    con_recv(connection, client_address)
-    #t = threading.Thread(target = con_recv, args = (connection, client_address))
-    #t.start()
+    #con_recv(connection, client_address)
+    t = threading.Thread(target = con_recv, args = (connection, client_address))
+    t.start()
 
 
