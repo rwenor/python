@@ -33,7 +33,7 @@ def Disp_sm(fra, til, data, con):
     else:
         to_sm = conDict[to]
         msg = fra + '\t' + til + '\t' + data
-        #print msg, to_sm.con.con
+        print msg, to_sm.con.con
         to_sm.con.sendall(msg)
         #data = Disp_sm_pi(fra, til, data, con)
         data = None
