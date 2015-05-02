@@ -2,6 +2,7 @@ import socket
 import sys
 import time
 from sms_pi import *
+from sms_hub_lib import *
     
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -55,7 +56,7 @@ try:
         temp = sm_func(sysName, 'Serv.CpuTemp', '.')
         tempsum += ' ' + temp 
         print "Cpu temp: " + temp
-        #print "Sum temp: " + sm_func(sysName, 'temp2' + '.Add', tempsum)
+        print "Sum temp: " + sm_func(sysName, 'temp2' + '.Add', tempsum)
         time.sleep(2)
         
     #print "UnRegName: " + sm_func(sysName, 'Serv.UnRegName', sysName)
@@ -64,10 +65,29 @@ try:
     amount_received = 0
     amount_expected = 10
     
-    while amount_received < 10:
+    while amount_received < 100:
         data = sock.recv(200)
         amount_received += len(data)
         print >>sys.stderr, 'received "%s"' % data
+ 
+        if data:
+          l = data.strip().split('\t')
+          if len(l) < 3:
+            print "Err: ", l
+            l[2] = 'NAK'
+          else:
+            til = l[1].split('.')
+            to = til.pop(0)
+            l[2] = Disp_sm_pi(l[0], til, l[2], sock)
+
+            #print >>sys.stderr, 'sending data back to the client'
+            if l[2] <> None:
+              data = l[1] + '\t' + l[0] + '\t' + l[2]
+              sock.sendall(data)
+            else:
+              print >>sys.stderr, 'no more data from', addr
+              break
+         
 
     PTD("Reseved: " + str(amount_received))
 finally:
