@@ -56,19 +56,22 @@ try:
         temp = sm_func(sysName, 'Serv.CpuTemp', '.')
         tempsum += ' ' + temp 
         print "Cpu temp: " + temp
-        print "Sum temp: " + sm_func(sysName, 'temp2' + '.Add', tempsum)
+        print "Sum temp: " + sm_func(sysName, 'test2' + '.Add', tempsum)
         time.sleep(2)
         
     #print "UnRegName: " + sm_func(sysName, 'Serv.UnRegName', sysName)
+    if sysName == 'test1':
+         print "Stop test2: " + sm_func(sysName, 'test2.Quit', sysName)
+         exit
 
     # Look for the response
     amount_received = 0
     amount_expected = 10
     
-    while amount_received < 100:
+    while amount_received < 200:
         data = sock.recv(200)
-        amount_received += len(data)
-        print >>sys.stderr, 'received "%s"' % data
+        amount_received = len(data)
+        print >>sys.stderr, 'Xreceived "%s"' % data
  
         if data:
           l = data.strip().split('\t')
@@ -78,18 +81,31 @@ try:
           else:
             til = l[1].split('.')
             to = til.pop(0)
-            l[2] = Disp_sm_pi(l[0], til, l[2], sock)
-
-            #print >>sys.stderr, 'sending data back to the client'
-            if l[2] <> None:
-              data = l[1] + '\t' + l[0] + '\t' + l[2]
-              sock.sendall(data)
+            
+            print '# ' + data
+            if til <> ['Quit']:
+                if til:
+                    l[2] = Disp_sm_pi(l[0], til, l[2], sock)
+                else:
+                    print '* ' + data
             else:
-              print >>sys.stderr, 'no more data from', addr
-              break
-         
+                print >>sys.stderr, 'no more data from', l[0]
+                data = l[1] + '\t' + l[0] + '\t' + l[1] + ' Bye'
+                sock.sendall(data)
+                break              
+                
+            if l[2] <> None:
+                data = l[1] + '\t' + l[0] + '\t' + l[2]
+                sock.sendall(data)
+                
+        else:
+            print 'No more? *'
+            break 
 
-    PTD("Reseved: " + str(amount_received))
+    PTD("Reseved: " + str(amount_received) + ' - ' + data)
+    
 finally:
+    print "UnRegName: " + sm_func(sysName, 'Serv.UnRegName', sysName) 
+         
     print >>sys.stderr, 'closing socket'
     sock.close()

@@ -30,13 +30,16 @@ def Disp_sm(fra, til, data, con):
     #print 'YYYYYY'
     if to == 'Serv':
         data = Disp_sm_serv(fra, tlist, data, con)
-    else:
+        
+    elif to in conDict:
         to_sm = conDict[to]
         msg = fra + '\t' + til + '\t' + data
         print msg, to_sm.cName
         to_sm.con.sendall(msg)
         #data = Disp_sm_pi(fra, til, data, con)
         data = None
+    else:
+        data = 'No srv: '+ to
             
     return data
 
