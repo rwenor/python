@@ -20,9 +20,9 @@ def sm_func(fra, til, data):
     msg = fra + '\t' + til + '\t' + data
     print >>sys.stderr, 'sending "%s"' % msg
     
-    PTD("Send")
+    #PTD("Send")
     sock.sendall(msg)
-    PTD("End")
+    #PTD("End")
     
     # Look for the response
     amount_received = 0
@@ -32,12 +32,10 @@ def sm_func(fra, til, data):
         amount_received += len(msg)
         #print >>sys.stderr, 'received "%s"' % data
     
-    PTD("Reseved")
+    #PTD("Reseved")
     l = msg.strip().split('\t')
   
     return l[2]
-
-
 
 try:
     
@@ -77,7 +75,12 @@ try:
           l = data.strip().split('\t')
           if len(l) < 3:
             print "Err: ", l
-            l[2] = 'NAK'
+            l[2] = 'NAK' 
+            
+          elif l[2] == 'NAK': # No respons
+              print '!! - ' + data
+              l[2] = None   
+               
           else:
             til = l[1].split('.')
             to = til.pop(0)
@@ -103,6 +106,10 @@ try:
             break 
 
     PTD("Reseved: " + str(amount_received) + ' - ' + data)
+
+    if sysName == 'test2':
+         print "Stop test1: " + sm_func(sysName, 'test1.Quit', sysName)
+         exit
     
 finally:
     print "UnRegName: " + sm_func(sysName, 'Serv.UnRegName', sysName) 

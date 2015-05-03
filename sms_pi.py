@@ -23,13 +23,14 @@ def sm_add(fra, til, data):
     try:
         d = data.strip().split(' ')
 
-        data = 0
+        dsum = 0
         for val in d:
-            data += float(val)
-        data = str(data)
+            dsum += float(val)
+        data = str(dsum)
 
     except:
-        data = 'ERR'
+        print '!X ' + data
+        data = 'NAK'
 
     return data
 
@@ -41,7 +42,7 @@ def sm_getCpuTemp(fra, til, data):
          
         data = '-999'    
     except:
-        data = 'ERR'
+        data = 'NAK'
 
     return data
 
@@ -56,7 +57,7 @@ def Disp_sm_pi(fra, til, data, con):
         data = sm_getCpuTemp(fra, til, data)
 
     else:
-        data = 'ERR'
+        data = 'NAK'
 
     return data
     

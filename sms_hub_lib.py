@@ -8,6 +8,8 @@ from sms_pi import *
 
 conDict = {}
 
+
+
 def Disp_sm_serv(fra, til, data, con):
 
     if til[0] == 'UnRegName':
@@ -34,7 +36,7 @@ def Disp_sm(fra, til, data, con):
     elif to in conDict:
         to_sm = conDict[to]
         msg = fra + '\t' + til + '\t' + data
-        print msg, to_sm.cName
+        print '<< "' + msg + '" --> ' + to_sm.cName
         to_sm.con.sendall(msg)
         #data = Disp_sm_pi(fra, til, data, con)
         data = None
