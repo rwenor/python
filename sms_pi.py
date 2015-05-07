@@ -3,6 +3,7 @@ import sys
 import time
 import os
 import threading
+import subprocess
 
 
 PrintTimeDiffLast = time.time()
@@ -34,6 +35,17 @@ def sm_add(fra, til, data):
 
     return data
 
+
+def sm_ls(fra, til, data):
+    try:
+        subprocess.call(['ls', '-1'], shell=True)
+        data = 'ACK'
+    except:
+        print '!X ' + data
+        data = 'NAK'
+
+    return data
+
     
 def sm_getCpuTemp(fra, til, data):
     try:
@@ -55,6 +67,8 @@ def Disp_sm_pi(fra, til, data, con):
         data = sm_add(fra, til, data)
     elif to == 'CpuTemp':
         data = sm_getCpuTemp(fra, til, data)
+    elif to == 'ls':
+        data = sm_ls(fra, til, data)
 
     else:
         data = 'NAK'
@@ -79,6 +93,10 @@ class TestStringMethods(unittest.TestCase):
   def test_add(self):
       data = sm_add('', '', '1 2 3')
       self.assertEqual(data, '6.0')
+
+  def test_ls(self):
+      data = sm_ls('', '', '1 2 3')
+      self.assertEqual(data, 'ACK')
 
   def test_disp(self):
       data = Disp_sm_pi('Fra', 'Add'.split('.'), '1 2 3', None)
