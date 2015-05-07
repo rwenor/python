@@ -60,7 +60,7 @@ def dprt(dstr, f = False):
 
 
 # Test-Image settings
-framerate = 30
+framerate = 10
 imgCnt = framerate*60
 testWidth = 640
 testHeight = 480
@@ -288,10 +288,10 @@ def outputs():
         # Finally, reset the stream for the next capture
         if i % 2:
             stream = stream1
-            #PTD('Stream1 reset')
+            PTD('Stream1 reset')
         else:
             stream = stream2
-            #PTD('Stream2 reset')
+            PTD('Stream2 reset')
             
         stream.seek(0)
         stream.truncate()
