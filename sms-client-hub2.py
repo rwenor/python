@@ -51,7 +51,8 @@ try:
     tempsum = '1'
     lastsum = ''	
     
-    while time.time() < t + 10:
+    if sysName == 'test1'
+      while time.time() < t + 10:
         #temp = sm_func(sysName, 'Serv.CpuTemp', '.')
         #tempsum += ' ' + temp 
         #print "Cpu temp: " + temp
