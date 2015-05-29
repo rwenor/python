@@ -96,6 +96,40 @@ class TestStringMethods(unittest.TestCase):
       print conDict
       
 
+def con_recv(con, addr):
+    try:
+        print >>sys.stderr, 'connection from', addr
+        
+        while True:
+            data = con.recv(200)
+            
+            if data:
+                l = data.strip().split('\t')
+                print >>sys.stderr, '>> "%s"' % str(len(l)) + ' : ' + data
+                if len(l) < 4:
+                    print "Err: ", l
+                    if len(l) > 2:
+                        l[2] = 'Err to long?'
+                    else:
+                        continue
+                    
+                else:
+                    l[2] = Disp_sm(l[0], l[1], l[2], con)
+
+                #print >>sys.stderr, 'sending data back to the client'
+                if l[2] <> None:
+                    data = l[1] + '\t' + l[0] + '\t' + l[2]
+                    con.sendall(data)
+            else:
+                print >>sys.stderr, 'no more data from', addr
+                break
+            
+    finally:      
+        # Clean up the connection
+        con.close()
+    
+      
+
 if __name__ == '__main__':
   
     print 3*'\n'
