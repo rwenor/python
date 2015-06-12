@@ -70,6 +70,15 @@ def get_data2():
         print 'w: ' + str(waiting) + '-' + l[1] + '\t' + l[0]
         if waiting == l[1] + '\t' + l[0]:
             q.put(msg)
+        else:
+            til = l[1].split('.')
+            til.pop(0)
+            l[2] = Disp_sm_pi(l[0], til, l[2], sock)
+            if l[2]:
+                data = l[1] + '\t' + l[0] + '\t' + l[2]
+                print >>sys.stderr, 'sending data back: ' + data
+                sock.sendall(data)
+            
     print 'get_data ut2'
     
         
@@ -84,7 +93,7 @@ def sm_func(fra, til, data):
     global waiting
     # Send data
     msg = fra + '\t' + til + '\t' + data + '\t#'
-    print >>sys.stderr, 'sending "%s"' % msg
+    #print >>sys.stderr, 'sending "%s"' % msg
     
     #PTD("Send")
     sock.sendall(msg)
@@ -127,12 +136,15 @@ try:
 ##    print 'Send ""'
 ##    sock.sendall('')
 ##    time.sleep(5)
+    print
     print 1
-    print "RegName: " + sm_func(sysName, 'Serv.RegName', sysName)
+    print "-> RegName: " + sm_func(sysName, 'Serv.RegName', sysName)
+    print "-> CpuTemp: " + sm_func(sysName, 'Serv.CpuTemp', '.')
+    print "-> Test1.CpuTemp: " + sm_func(sysName, 'Test1.CpuTemp', '.')
     print 2
     
 finally:
-    print "Quit: " + sm_func(sysName, sysName + '.Quit', sysName) 
+    print "-> Quit: " + sm_func(sysName, sysName + '.Quit', sysName) 
     q.put('')
     print "UnRegName: " + sm_func(sysName, 'Serv.UnRegName', sysName) 
          

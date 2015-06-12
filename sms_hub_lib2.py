@@ -23,21 +23,25 @@ def Disp_sm_serv(fra, til, data, con):
         conDict[data] = sms_client(data, '', con)
         data = 'ACK'        
     else:
+        print 'DISP_SM'
         data = Disp_sm_pi(fra, til, data, con)
             
     return data
     
     
 def Disp_sm_hub(fra, til, data, con):
-  
+
+    print '***DISP:'
     tlist = til.split('.')
     to = tlist.pop(0)
     
     #print 'YYYYYY'
     if to == servName:
+        print '***SERVER:'
         data = Disp_sm_serv(fra, tlist, data, con)
         
     elif to in conDict:
+        print '***HUB:'
         to_sm = conDict[to]
         msg = fra + '\t' + til + '\t' + data
         print '<< "' + msg + '" --> ' + to_sm.cName
@@ -60,7 +64,9 @@ def con_recv_hub(con, addr):
             if data:
                 l = data.strip().split('\t')
                 print >>sys.stderr, '>> "%s"' % str(len(l)) + ' : ' + data
-                if len(l) < 4:
+
+                ## Ekstra element?
+                if len(l) < 2:
                     print "Err: ", l
                     if len(l) > 2:
                         l[2] = 'Err to long?'

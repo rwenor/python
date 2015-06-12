@@ -49,10 +49,10 @@ def sm_ls(fra, til, data):
     
 def sm_getCpuTemp(fra, til, data):
     try:
-        #res = os.popen('vcgencmd measure_temp').readline()
-        #data = res.replace("temp=","").replace("'C\n","")
+        res = os.popen('vcgencmd measure_temp').readline()
+        data = res.replace("temp=","").replace("'C\n","")
          
-        data = '-999'    
+        #data = '-999'    
     except:
         data = 'NAK'
 
@@ -62,7 +62,10 @@ def sm_getCpuTemp(fra, til, data):
 
 def Disp_sm_pi(fra, til, data, con):
 
+    print '*'*10
+    print til
     to = til.pop(0)
+    print to
     if to == 'Add':
         data = sm_add(fra, til, data)
     elif to == 'CpuTemp':
@@ -73,6 +76,7 @@ def Disp_sm_pi(fra, til, data, con):
     else:
         data = 'NAK'
 
+    print data
     return data
     
 def sms_pop(adr):
