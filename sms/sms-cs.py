@@ -115,7 +115,11 @@ def sm_func(fra, til, data):
     return l[2]
 
 
-    
+
+##### MAIN
+if len(sys.argv) < 3:
+    sys.argv = ["Testing", "127.0.0.1", "Test1"]
+
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
