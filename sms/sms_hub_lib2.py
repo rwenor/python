@@ -19,9 +19,11 @@ def Disp_sm_serv(fra, til, data, con):
     if til[0] == 'UnRegName':
         del conDict[data]
         data = 'ACK'
+        print conDict
     elif til[0] == 'RegName':
         conDict[data] = sms_client(data, '', con)
-        data = 'ACK'        
+        data = 'ACK'
+        print conDict
     else:
         print 'DISP_SM'
         data = Disp_sm_pi(fra, til, data, con)
@@ -59,7 +61,9 @@ def con_recv_hub(con, addr):
         print >>sys.stderr, 'connection from', addr
         
         while True:
+            print 'Inn'
             data = con.recv(200)
+            print 'Ut'
             
             if data:
                 l = data.strip().split('\t')
@@ -80,6 +84,8 @@ def con_recv_hub(con, addr):
                 if l[2] <> None:
                     data = l[1] + '\t' + l[0] + '\t' + l[2]
                     con.sendall(data)
+                #if l[2] == 'BYE':
+                #    break;
             else:
                 print >>sys.stderr, 'no more data from', addr
                 break

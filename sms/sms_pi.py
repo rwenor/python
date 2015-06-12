@@ -46,6 +46,16 @@ def sm_ls(fra, til, data):
 
     return data
 
+
+def sm_print(fra, til, data):
+    try:
+        print "PRINT: " + data
+        data = None
+    except:
+        print '!X ' + data
+        data = 'NAK'
+
+    return data
     
 def sm_getCpuTemp(fra, til, data):
     try:
@@ -72,6 +82,8 @@ def Disp_sm_pi(fra, til, data, con):
         data = sm_getCpuTemp(fra, til, data)
     elif to == 'ls':
         data = sm_ls(fra, til, data)
+    elif to == 'Print':
+        data = sm_print(fra, til, data)
 
     else:
         data = 'NAK'
