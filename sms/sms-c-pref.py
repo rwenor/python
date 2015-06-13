@@ -148,7 +148,7 @@ try:
 
     for i in xrange(0,20):
         sock.sendall(sysName + '.Print\tServ.CpuTemp\t.')
-        #time.sleep(0.1)
+        time.sleep(0.1)
         print i
         print
         
