@@ -93,16 +93,18 @@ def sm_func(fra, til, data):
     global waiting
     # Send data
     msg = fra + '\t' + til + '\t' + data + '\t#'
-    #print >>sys.stderr, 'sending "%s"' % msg
+    print >>sys.stderr, 'Xsending "%s"' % msg
     
-    #PTD("Send")
+    PTD("Send")
+    waiting = fra + '\t' + til
     sock.sendall(msg)
     #PTD("End")
     
     # Look for the response
     #get_data()
-    waiting = fra + '\t' + til
+
     msg = q.get()
+    print 'wFalse'
     waiting = False
     
     if msg == '':
@@ -142,7 +144,7 @@ try:
 
     for i in xrange(0,20):
         sock.sendall(sysName + '.Print\tServ.CpuTemp\t.')
-        #time.sleep(0.1)
+        time.sleep(0.1)
         print i
         #print
         
@@ -151,8 +153,8 @@ try:
     
 finally:
     print "-> Quit: " + sm_func(sysName, sysName + '.Quit', sysName) 
-    q.put('')
     print "UnRegName: " + sm_func(sysName, 'Serv.UnRegName', sysName) 
+    q.put('')
          
     print >>sys.stderr, 'closing socket'
     sock.close()

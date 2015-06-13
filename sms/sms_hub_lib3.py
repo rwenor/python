@@ -224,19 +224,19 @@ if __name__ == '__main__':
 
     class TestStringMethods(unittest.TestCase):
 
-      def test_RegName(self):
+      def xtest_RegName(self):
           print '\nRegName sm_serv'
           data = Disp_sm_serv('Fra 1', 'RegName'.split('.'), 'Fra 1', test_con('Fra 1', '1.2.3.4', 1))
           self.assertEqual(data, 'ACK')
           print conDict
 
-      def test_Disp(self):
+      def xtest_Disp(self):
           print '\nRegName sm_hub'
           data = Disp_sm_hub('Test.Fra 1', 'Serv.RegName', 'Fra 1', test_con('Fra 1', '1.2.3.4', 1))
           self.assertEqual(data, 'ACK')
           print conDict
 
-      def test_Disp_Send(self):
+      def xtest_Disp_Send(self):
           print '\nDisp_Send'
           # Setup
           data = Disp_sm_hub('Test.Fra 1', 'Serv.RegName', 'Fra 1', test_con('Fra 1', '1.2.3.4', 1))
@@ -248,7 +248,7 @@ if __name__ == '__main__':
           self.assertEqual(data, None)
           print conDict
             
-      def test_sm_Func(self):
+      def xtest_sm_Func(self):
           print '\nsm_Func'
           sm_wait = {}
           sm_wait['test'] = None
@@ -261,6 +261,23 @@ if __name__ == '__main__':
               print 'Key deleted'
               
           #self.assertEqual(sm_wait['test'], None)
+          
+      def test_server_client(self):
+          serv = SmsTcpServer("Serv", '', 9999)
+          t = threading.Thread(target = serv.run_server, args = ())
+          t.start()
+          
+          
+          cli =  SmsTcpClient( "cli", '127.0.0.1', 9999)   
+          
+          cli.sendall('test')
+          msg = serv.recv(200)
+          
+          cleanup_stop_thread();
+          
+          self.assertEqual('test1', msg)
+          
+        
           
 
   

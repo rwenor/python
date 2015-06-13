@@ -146,13 +146,13 @@ try:
     print "-> CpuTemp: " + sm_func(sysName, 'Serv.CpuTemp', '.')
     print "-> Test1.CpuTemp: " + sm_func(sysName, 'Test1.CpuTemp', '.')
 
-    for i in xrange(0,20):
+    for i in xrange(0,0):
         sock.sendall(sysName + '.Print\tServ.CpuTemp\t.')
         time.sleep(0.1)
         print i
         print
         
-    time.sleep(15)
+    time.sleep(1)
     print 2
     
 finally:
