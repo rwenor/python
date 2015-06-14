@@ -136,7 +136,7 @@ class SmsTcpServer:
         
         
     def sendall(self, msg):
-        print 'xSending ""' + msg
+        print 'xxxSending ""' + msg
 
 
     def run_server(self):
@@ -181,40 +181,92 @@ class SmsTcpClient:
 
         
     def sendall(self, msg):
-        print 'Sending ""' + str(msg)
+        print '<< ' + str(msg)
         if (len(msg) <= 200):
             #msg = str(len(msg)).zfill(3) + msg
             self.sock.sendall(msg)
-            time.sleep(0.1)
+            #time.sleep(0.1)
         else:
             print >>sys.stderr, 'msg to long'
             
 
     def recv(self, cnt):
-        print 'Mottar: ', str(cnt)
-        return self.sock.recv(200)
+        msg = self.sock.recv(cnt)
+        print '>> ', str(msg)
+        return msg
+        
+        
+    def sm_func(self, fra, til, data):
+        #global waiting
+        #global q
+        
+        # Send data
+        msg = fra + '\t' + til + '\t' + data + '\t#'
+        #print >>sys.stderr, 'X-sending "%s"' % msg
+    
+        #PTD("Send")
+        self.waitingMsg = fra + '\t' + til
+        self.sendall(msg)
+        #PTD("End")
+    
+        # Look for the response
+        #get_data()
 
-    def run_server(self):
-        # Listen for incoming connections
-        self.sock.listen(1)
+        #msg = q.get()
+        #print 'wFalse'
+        #waiting = False
+    
+        msg = self.recv(200)
+        if msg == '':
+            return 'Abort'
 
-        try:
-          while True:
+    
+        #PTD("Reseved")
+        l = msg.strip().split('\t')
+  
+        return l[2]
+
+
+    def get_data2(self):   
+        print 'get_data in2'
+     
+        while True:
+            amount_received = 0
+            print 'recv'
+            msg = self.sock.recv(200)
+            print 'get_data -> ' + str(msg)
+            if msg:
             
-            # Wait for a connection
-            #print conDict
-            print >>sys.stderr, 'waiting for a connection'
-
-            connection, client_address = self.sock.accept()
-
-            #con_recv(connection, client_address)
-            t = threading.Thread(target = con_recv_hub, args = (connection, client_address))
-            t.start()
-
-        finally:
-            #print "Stop test1: " + sm_func(sysName, 'test1.Quit', sysName)
-            #print "Stop test2: " + sm_func(sysName, 'test2.Quit', sysName)
-            print "End."
+                l = msg.strip().split('\t')
+            
+                til = l[1].split('.')
+                print til
+            
+                if til[-1] == 'Quit':
+                    print 'break'
+                    q.put(msg)
+                    break
+                
+            else:
+                print 'get_data return'
+                sock.close()
+                return
+            
+            amount_received += len(msg)
+            #print >>sys.stderr, 'received "%s"' % data
+            print 'w: ' + str(waiting) + '-' + l[1] + '\t' + l[0]
+            if waiting == l[1] + '\t' + l[0]:
+                q.put(msg)
+            else:
+                til = l[1].split('.')
+                til.pop(0)
+                l[2] = Disp_sm_pi(l[0], til, l[2], sock)
+                if l[2]:
+                    data = l[1] + '\t' + l[0] + '\t' + l[2]
+                    print >>sys.stderr, 'sending data back: ' + data
+                    sock.sendall(data)
+            
+        print 'get_data ut2'
 
 
         

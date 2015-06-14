@@ -89,7 +89,7 @@ def get_data2():
     #return msg
 
 
-def sm_func(fra, til, data):
+def Xsm_func(fra, til, data):
     global waiting
     # Send data
     msg = fra + '\t' + til + '\t' + data + '\t#'
@@ -129,32 +129,34 @@ sock = SmsTcpClient( sys.argv[2], sys.argv[1], 9999)
 
 ## MAIN
 try:
-    q = multiprocessing.Queue()
+#    q = multiprocessing.Queue()
     
-    k = threading.Thread(target=get_data2, args=())
-    k.start()
+#    k = threading.Thread(target=get_data2, args=())
+#    k.start()
 ##    print 'Send ""'
 ##    sock.sendall('')
 ##    time.sleep(5)
     print
     print 1
-    print "-> RegName: " + sm_func(sysName, 'Serv.RegName', sysName)
-    print "-> CpuTemp: " + sm_func(sysName, 'Serv.CpuTemp', '.')
-    print "-> Test1.CpuTemp: " + sm_func(sysName, 'Test1.CpuTemp', '.')
+    print "-> RegName: " + sock.sm_func(sysName, 'Serv.RegName', sysName)
+    print "-> CpuTemp: " + sock.sm_func(sysName, 'Serv.CpuTemp', '.')
+    print "-> CpuTemp: " + sock.sm_func(sysName, 'Serv.CpuTemp', '.')
+    print "-> Test1.CpuTemp: " + sock.sm_func(sysName, 'Test1.CpuTemp', '.')
 
-    for i in xrange(0,20):
+    for i in xrange(0,0):
         sock.sendall(sysName + '.Print\tServ.CpuTemp\t.')
         time.sleep(0.1)
         print i
         #print
         
-    time.sleep(15)
-    print 2
+    print 2    
+    #time.sleep(15)
+    print 3
     
 finally:
-    print "-> Quit: " + sm_func(sysName, sysName + '.Quit', sysName) 
-    print "UnRegName: " + sm_func(sysName, 'Serv.UnRegName', sysName) 
-    q.put('')
+#    print "-> Quit: " + sm_func(sysName, sysName + '.Quit', sysName) 
+#    print "UnRegName: " + sm_func(sysName, 'Serv.UnRegName', sysName) 
+#    q.put('')
          
     print >>sys.stderr, 'closing socket'
     sock.close()
