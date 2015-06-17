@@ -144,7 +144,7 @@ try:
     print "-> Test1.CpuTemp: " + sock.sm_func(sysName, 'Test1.CpuTemp', '.')
 
     sock.deb = False
-    for i in xrange(0,10):
+    for i in xrange(0,1000):
         t0 = time.time()
         for j in xrange(0,1):
             sock.sm_func(sysName, 'Serv.ping', '.')
