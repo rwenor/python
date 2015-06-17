@@ -145,8 +145,10 @@ try:
 
     for i in xrange(0,10):
         t0 = time.clock()
-        sock.sm_func(sysName, 'Serv.ping', '.')
-        print 'ping: ',i, (time.clock() - t0)*1000, 'ms' 
+        for j in xrange(0,1000):
+            sock.sm_func(sysName, 'Serv.ping', '.')
+            
+        print 'ping: ',i, (time.clock() - t0), 'ms' 
         
         time.sleep(0.1)
         #print
