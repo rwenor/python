@@ -145,10 +145,10 @@ try:
 
     for i in xrange(0,10):
         t0 = time.clock()
-        for j in xrange(0,1000):
+        for j in xrange(0,1):
             sock.sm_func(sysName, 'Serv.ping', '.')
             
-        print 'ping: ',i, (time.clock() - t0), 'ms' 
+        print 'ping: ',i, (time.clock() - t0)*100, 'ms' 
         
         time.sleep(0.1)
         #print
