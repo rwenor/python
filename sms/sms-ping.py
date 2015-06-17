@@ -151,7 +151,7 @@ try:
             
         print 'ping: ',i, (time.time() - t0)*100, 'ms' 
         
-        time.sleep(0.1)
+        #time.sleep(0.1)
         #print
     
     
