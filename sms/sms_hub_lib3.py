@@ -18,9 +18,13 @@ def Disp_sm_serv(fra, til, data, con):
 
     if til[0] == 'UnRegName':
         del conDict[data]
-        data = 'ACK'
+        data = 'BYE'
         print conDict
     elif til[0] == 'RegName':
+        conDict[data] = sms_client(data, '', con)
+        data = 'ACK'
+        print conDict
+    elif til[0] == 'ping':
         conDict[data] = sms_client(data, '', con)
         data = 'ACK'
         print conDict
@@ -84,14 +88,17 @@ def con_recv_hub(con, addr):
                 if l[2] <> None:
                     data = l[1] + '\t' + l[0] + '\t' + l[2]
                     con.sendall(data)
-                #if l[2] == 'BYE':
-                #    break;
+                if l[2] == 'BYE':
+                    time.sleep(1) # La svaret komme tilbake
+                    break
             else:
-                print >>sys.stderr, 'no more data from', addr
                 break
+            
+        print >>sys.stderr, 'no more data from', addr
             
     finally:      
         # Clean up the connection
+        print 'Server closing connection'
         con.close()
     
 
@@ -135,6 +142,13 @@ class SmsTcpServer:
         self.sock.bind(self.addr)
         
         
+    def close(self):
+        print 'sock.closeing...'
+        self.running = False
+        self.sock.shutdown(SHUT_RDWR)
+        self.sock.close();
+
+
     def sendall(self, msg):
         print 'xxxSending ""' + msg
 
@@ -142,15 +156,17 @@ class SmsTcpServer:
     def run_server(self):
         # Listen for incoming connections
         self.sock.listen(1)
+        self.running = True
 
         try:
-          while True:
+          while self.running:
             
             # Wait for a connection
             #print conDict
             print >>sys.stderr, 'waiting for a connection'
 
             connection, client_address = self.sock.accept()
+            print 'Serv: accept'
 
             #con_recv(connection, client_address)
             t = threading.Thread(target = con_recv_hub, args = (connection, client_address))
@@ -319,20 +335,27 @@ if __name__ == '__main__':
           t = threading.Thread(target = serv.run_server, args = ())
           t.start()
           
-          
+          time.sleep(1)
           cli =  SmsTcpClient( "cli", '127.0.0.1', 9999)   
+          time.sleep(1)
           
-          cli.sendall('test')
-          msg = serv.recv(200)
+          #cli.sendall('test')
+          #msg = serv.recv(200)
+          #print 'Serv.CpuTemp -> ' + cli.sm_func()
+          print "-> RegName: " + cli.sm_func(cli.name, 'Serv.RegName', cli.name)
+          print "-> CpuTemp: " + cli.sm_func(cli.name, 'Serv.CpuTemp', '.')
+          print "-> Quit: " + cli.sm_func(cli.name, cli.name + '.Quit', cli.name) 
+           
+          self.assertEqual('ACK', cli.sm_func(cli.name, 'Serv.UnRegName', cli.name) )
           
-          cleanup_stop_thread();
+          #cleanup_stop_thread();
           
+          #cli.sendall('') # Stop server thread 
+          cli.close()
+          serv.close()
           self.assertEqual('test1', msg)
           
         
-          
-
-  
     print 3*'\n'
     print 70*'*'
     print 'Test: '
