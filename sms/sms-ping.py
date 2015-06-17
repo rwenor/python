@@ -143,10 +143,12 @@ try:
     print "-> ping: " + sock.sm_func(sysName, 'Serv.ping', '.')
     print "-> Test1.CpuTemp: " + sock.sm_func(sysName, 'Test1.CpuTemp', '.')
 
-    for i in xrange(0,0):
-        sock.sendall(sysName + '.Print\tServ.CpuTemp\t.')
+    for i in xrange(0,10):
+        t0 = time.clock()
+        sock.sm_func(sysName, 'Serv.ping', '.')
+        print 'ping: ',i, (time.clock() - t0)*1000, 'ms' 
+        
         time.sleep(0.1)
-        print i
         #print
         
     print 2    
