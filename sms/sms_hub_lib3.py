@@ -190,6 +190,7 @@ class SmsTcpClient:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print >>sys.stderr, 'Connect to %s on port %s' % self.addr
         self.sock.connect(self.addr)
+        self.deb = True
 
 
     def close(self):
@@ -197,7 +198,8 @@ class SmsTcpClient:
 
         
     def sendall(self, msg):
-        print '<< ' + str(msg)
+        if self.deb:
+            print '<< ' + str(msg)
         if (len(msg) <= 200):
             #msg = str(len(msg)).zfill(3) + msg
             self.sock.sendall(msg)
@@ -208,7 +210,8 @@ class SmsTcpClient:
 
     def recv(self, cnt):
         msg = self.sock.recv(cnt)
-        print '>> ', str(msg)
+        if self.deb:
+            print '>> ', str(msg)
         return msg
         
         

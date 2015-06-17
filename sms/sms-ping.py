@@ -143,6 +143,7 @@ try:
     print "-> ping: " + sock.sm_func(sysName, 'Serv.ping', '.')
     print "-> Test1.CpuTemp: " + sock.sm_func(sysName, 'Test1.CpuTemp', '.')
 
+    sock.deb = False
     for i in xrange(0,10):
         t0 = time.clock()
         for j in xrange(0,1):
@@ -152,7 +153,9 @@ try:
         
         time.sleep(0.1)
         #print
-        
+    
+    
+    sock.deb = True    
     print 2    
     #time.sleep(15)
     print 3
