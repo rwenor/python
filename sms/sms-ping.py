@@ -154,7 +154,7 @@ try:
         
         #time.sleep(0.1)
         #print
-    print  time.time() - t1, 'ms'
+    print  i*j, time.time() - t1, 's'
     
     sock.deb = True    
     print 2    
