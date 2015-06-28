@@ -47,20 +47,18 @@ try:
     print "Cpu temp: " + sm_func(sysName, 'Serv.CpuTemp', '.')
     print "Add: " + sm_func(sysName, 'Serv.Add', '24 56 78')
     
-    # Send data
-    message = sysName + "\tServ.Add\t1 2 3 4 5 6 123.34"
-    print >>sys.stderr, 'sending "%s"' % message
-
-    PTD("Send")
-    sock.sendall(message)
-    PTD("End")
 
     t = time.time()
+    tempsum = ''
+    
     while time.time() < t + 10:
-        print "Cpu temp: " + sm_func(sysName, 'Serv.CpuTemp', '.')
+        temp = sm_func(sysName, 'Serv.CpuTemp', '.')
+        tempsum += ' ' + temp 
+        print "Cpu temp: " + temp
+        #print "Sum temp: " + sm_func(sysName, 'temp2' + '.Add', tempsum)
         time.sleep(2)
         
-    print "UnRegName: " + sm_func(sysName, 'Serv.UnRegName', sysName)
+    #print "UnRegName: " + sm_func(sysName, 'Serv.UnRegName', sysName)
 
     # Look for the response
     amount_received = 0

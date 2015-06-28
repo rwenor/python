@@ -15,7 +15,8 @@ try:
     while True:
         # Read the length of the image as a 32-bit unsigned int. If the
         # length is zero, quit the loop
-        image_len = struct.unpack('<L', connection.read(struct.calcsize('<L')))[0]
+        r_len = struct.calcsize('<L')
+        image_len = struct.unpack('<L', connection.read(r_len))[0]
         if not image_len:
             break
         # Construct a stream to hold the image data and read the image
@@ -28,7 +29,6 @@ try:
         image = Image.open(image_stream)
         print('Image is %dx%d' % image.size)
         image.verify()
-	image.show()
         print('Image is verified')
         image.show()
         print 'show'
