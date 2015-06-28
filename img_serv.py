@@ -28,6 +28,7 @@ try:
         image = Image.open(image_stream)
         print('Image is %dx%d' % image.size)
         image.verify()
+	image.show()
         print('Image is verified')
 finally:
     connection.close()
