@@ -9,7 +9,7 @@ sm_wait = {} # Disse venter data
 waiting = False
 
 
-def get_data():   
+def xget_data():   
     print 'get_data in'
      
     while True:
@@ -40,7 +40,7 @@ def get_data():
     print 'get_data ut'
     
     
-def get_data2():   
+def xget_data2():   
     print 'get_data in2'
      
     while True:

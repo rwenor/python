@@ -60,46 +60,6 @@ def Disp_sm_hub(fra, til, data, con):
     return data
 
 
-def con_recv_hub(con, addr):
-    try:
-        print >>sys.stderr, 'connection from', addr
-        
-        while True:
-            print 'Inn'
-            data = con.recv(200)
-            print 'Ut'
-            
-            if data:
-                l = data.strip().split('\t')
-                print >>sys.stderr, '>> "%s"' % str(len(l)) + ' : ' + data
-
-                ## Ekstra element?
-                if len(l) < 2:
-                    print "Err: ", l
-                    if len(l) > 2:
-                        l[2] = 'Err to long?'
-                    else:
-                        continue
-                    
-                else:
-                    l[2] = Disp_sm_hub(l[0], l[1], l[2], con)
-
-                #print >>sys.stderr, 'sending data back to the client'
-                if l[2] <> None:
-                    data = l[1] + '\t' + l[0] + '\t' + l[2]
-                    con.sendall(data)
-                if l[2] == 'BYE':
-                    time.sleep(1) # La svaret komme tilbake
-                    break
-            else:
-                break
-            
-        print >>sys.stderr, 'no more data from', addr
-            
-    finally:      
-        # Clean up the connection
-        print 'Server closing connection'
-        con.close()
     
 
 
@@ -139,18 +99,62 @@ class SmsTcpServer:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print >>sys.stderr, 'starting up on %s port %s' % self.addr
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        #self.sock.settimeout(10)
         self.sock.bind(self.addr)
         
         
     def close(self):
         print 'sock.closeing...'
         self.running = False
-        self.sock.shutdown(SHUT_RDWR)
+        #self.sock.shutdown(socket.SHUT_RDWR)
         self.sock.close();
 
 
     def sendall(self, msg):
         print 'xxxSending ""' + msg
+
+
+    def con_recv_hub(self, con, addr):
+        try:
+            print >>sys.stderr, 'connection from', addr
+        
+            while True:
+                print 'Inn'
+                data = con.recv(200)
+                print 'Ut'
+            
+                if data:
+                    l = data.strip().split('\t')
+                    print >>sys.stderr, '>> "%s"' % str(len(l)) + ' : ' + data
+
+                    ## Ekstra element?
+                    if len(l) < 2:
+                        print "Err: ", l
+                        if len(l) > 2:
+                            l[2] = 'Err to long?'
+                        else:
+                            continue
+                    
+                    else:
+                        l[2] = Disp_sm_hub(l[0], l[1], l[2], con)
+
+                    #print >>sys.stderr, 'sending data back to the client'
+                    if l[2] <> None:
+                        data = l[1] + '\t' + l[0] + '\t' + l[2]
+                        con.sendall(data)
+                    if l[2] == 'BYE':
+                        time.sleep(1) # La svaret komme tilbake
+                        break
+                else:
+                    break
+            
+            print >>sys.stderr, 'no more data from', addr
+            
+        finally:      
+            # Clean up the connection
+            print 'Server closing connection'
+            con.close()
+            print conDict
 
 
     def run_server(self):
@@ -169,7 +173,7 @@ class SmsTcpServer:
             print 'Serv: accept'
 
             #con_recv(connection, client_address)
-            t = threading.Thread(target = con_recv_hub, args = (connection, client_address))
+            t = threading.Thread(target = self.con_recv_hub, args = (connection, client_address))
             t.start()
 
         finally:
@@ -178,10 +182,7 @@ class SmsTcpServer:
             print "End."
         
         
-class SmsTcpClient:
-    cName = ''
-    cAddr = ''
-    con = None
+class SmsTcpClient:  
 
     def __init__(self, name, addr, port):
         self.name = name
@@ -191,6 +192,7 @@ class SmsTcpClient:
         print >>sys.stderr, 'Connect to %s on port %s' % self.addr
         self.sock.connect(self.addr)
         self.deb = True
+        #self.disp_sm = Disp_sm_pi
 
 
     def close(self):
@@ -279,7 +281,7 @@ class SmsTcpClient:
             else:
                 til = l[1].split('.')
                 til.pop(0)
-                l[2] = Disp_sm_pi(l[0], til, l[2], sock)
+                l[2] = disp_sm(l[0], til, l[2], sock)
                 if l[2]:
                     data = l[1] + '\t' + l[0] + '\t' + l[2]
                     print >>sys.stderr, 'sending data back: ' + data
@@ -349,14 +351,14 @@ if __name__ == '__main__':
           print "-> CpuTemp: " + cli.sm_func(cli.name, 'Serv.CpuTemp', '.')
           print "-> Quit: " + cli.sm_func(cli.name, cli.name + '.Quit', cli.name) 
            
-          self.assertEqual('ACK', cli.sm_func(cli.name, 'Serv.UnRegName', cli.name) )
+          self.assertEqual('BYE', cli.sm_func(cli.name, 'Serv.UnRegName', cli.name) )
           
           #cleanup_stop_thread();
           
           #cli.sendall('') # Stop server thread 
           cli.close()
           serv.close()
-          self.assertEqual('test1', msg)
+          #self.assertEqual('test1', msg)
           
         
     print 3*'\n'
