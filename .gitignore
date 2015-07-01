@@ -5,3 +5,4 @@
 *.log
 *.h264
 __pycache__
+Thumbs.db
