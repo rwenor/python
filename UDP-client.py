@@ -8,6 +8,8 @@ print "Listening for replies; press Ctrl-C to stop."
 while 1:
     (buf, address) = s.recvfrom(2048)
     if not len(buf):
-        break
-    print "Received from %s: %s" % (address, buf)
-    break
+        print "Received NULL from %s: %s" % (address, buf)
+        #break
+    else:
+        print "Received data from %s: %s" % (address, buf)
+    #break
