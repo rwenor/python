@@ -72,7 +72,7 @@ def sm_getCpuTemp(fra, til, data):
 
 def Disp_sm_pi(fra, til, data, con):
 
-    print '*'*10
+    print '*pi'
     print til
     to = til.pop(0)
     print to

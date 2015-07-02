@@ -14,6 +14,19 @@ def Disp_sm_SetName(name):
     servName = name
     
     
+def send_sm(con, msg):
+    if (len(msg) <= 200):
+        #msg = str(len(msg)).zfill(3) + msg
+        con.sendall(msg)
+        #time.sleep(0.1)
+    else:
+        print >>sys.stderr, 'msg to long'    
+    
+    
+def recv_sm(con):
+    return con.recv(200)
+    
+
 def Disp_sm_serv(fra, til, data, con):
 
     if til[0] == 'UnRegName':
@@ -29,7 +42,7 @@ def Disp_sm_serv(fra, til, data, con):
         data = 'ACK'
         print conDict
     else:
-        print 'DISP_SM'
+        #print 'DISP_SM'
         data = Disp_sm_pi(fra, til, data, con)
             
     return data
@@ -37,21 +50,21 @@ def Disp_sm_serv(fra, til, data, con):
     
 def Disp_sm_hub(fra, til, data, con):
 
-    print '***DISP:'
+    #print '***DISP:'
     tlist = til.split('.')
     to = tlist.pop(0)
     
     #print 'YYYYYY'
     if to == servName:
-        print '***SERVER:'
+        print '*S'
         data = Disp_sm_serv(fra, tlist, data, con)
         
     elif to in conDict:
-        print '***HUB:'
+        print '*H'
         to_sm = conDict[to]
         msg = fra + '\t' + til + '\t' + data
         print '<< "' + msg + '" --> ' + to_sm.cName
-        to_sm.con.sendall(msg)
+        send_sm(to_sm.con, msg)
         #data = Disp_sm_pi(fra, til, data, con)
         data = None
     else:
@@ -98,7 +111,7 @@ class SmsTcpServer:
         self.sock.close();
 
 
-    def sendall(self, msg):
+    def Xsendall(self, msg):
         print 'xxxSending ""' + msg
 
 
@@ -107,13 +120,13 @@ class SmsTcpServer:
             print >>sys.stderr, 'connection from', addr
         
             while True:
-                print 'Inn'
-                data = con.recv(200)
-                print 'Ut'
+                #print 'Inn'
+                data = recv_sm(con)  #con.recv(200)
+                #print 'Ut'
             
                 if data:
                     l = data.strip().split('\t')
-                    print >>sys.stderr, '>> "%s"' % str(len(l)) + ' : ' + data
+                    print >>sys.stderr, 'H> "%s"' % str(len(l)) + ' : ' + data
 
                     ## Ekstra element?
                     if len(l) < 2:
@@ -121,6 +134,7 @@ class SmsTcpServer:
                         if len(l) > 2:
                             l[2] = 'Err to long?'
                         else:
+                            send_sm(con, "Err: " + data)
                             continue
                     
                     else:
@@ -129,14 +143,14 @@ class SmsTcpServer:
                     #print >>sys.stderr, 'sending data back to the client'
                     if l[2] <> None:
                         data = l[1] + '\t' + l[0] + '\t' + l[2]
-                        con.sendall(data)
+                        send_sm(con, data)
                     if l[2] == 'BYE':
                         time.sleep(1) # La svaret komme tilbake
                         break
                 else:
                     break
             
-            print >>sys.stderr, 'no more data from', addr
+            print >>sys.stderr, 'H: No more data from', addr
             
         finally:      
             # Clean up the connection
@@ -155,10 +169,10 @@ class SmsTcpServer:
             
             # Wait for a connection
             #print conDict
-            print >>sys.stderr, 'waiting for a connection'
+            print >>sys.stderr, 'S: Waiting for a connection'
 
             connection, client_address = self.sock.accept()
-            print 'Serv: accept'
+            print 'S: Accept...'
 
             #con_recv(connection, client_address)
             t = threading.Thread(target = self.con_recv_hub, args = (connection, client_address))
@@ -167,7 +181,7 @@ class SmsTcpServer:
         finally:
             #print "Stop test1: " + sm_func(sysName, 'test1.Quit', sysName)
             #print "Stop test2: " + sm_func(sysName, 'test2.Quit', sysName)
-            print "End."
+            print "S: End."
         
         
 class SmsTcpClient:  
@@ -187,21 +201,16 @@ class SmsTcpClient:
         self.sock.close();
 
         
-    def sendall(self, msg):
+    def send(self, msg):
         if self.deb:
-            print '<< ' + str(msg)
-        if (len(msg) <= 200):
-            #msg = str(len(msg)).zfill(3) + msg
-            self.sock.sendall(msg)
-            #time.sleep(0.1)
-        else:
-            print >>sys.stderr, 'msg to long'
+            print '<c ', str(msg)
+        send_sm(self.sock, msg)
             
 
-    def recv(self, cnt):
-        msg = self.sock.recv(cnt)
+    def recv(self):
+        msg = recv_sm(self.sock)
         if self.deb:
-            print '>> ', str(msg)
+            print 'c> ', str(msg)
         return msg
         
         
@@ -215,7 +224,7 @@ class SmsTcpClient:
     
         #PTD("Send")
         self.waitingMsg = fra + '\t' + til
-        self.sendall(msg)
+        self.send(msg)
         #PTD("End")
     
         # Look for the response
@@ -225,7 +234,7 @@ class SmsTcpClient:
         #print 'wFalse'
         #waiting = False
     
-        msg = self.recv(200)
+        msg = self.recv()
         if msg == '':
             return 'Abort'
 
@@ -242,7 +251,7 @@ class SmsTcpClient:
         while True:
             amount_received = 0
             print 'recv'
-            msg = self.sock.recv(200)
+            msg = self.recv()
             print 'get_data -> ' + str(msg)
             if msg:
             
@@ -273,7 +282,7 @@ class SmsTcpClient:
                 if l[2]:
                     data = l[1] + '\t' + l[0] + '\t' + l[2]
                     print >>sys.stderr, 'sending data back: ' + data
-                    sock.sendall(data)
+                    self.send(self.sock, data)
             
         print 'get_data ut2'
 
@@ -334,12 +343,13 @@ if __name__ == '__main__':
           cli =  SmsTcpClient( "cli", '127.0.0.1', 9999)   
           time.sleep(1)
           
-          #cli.sendall('test')
-          #msg = serv.recv(200)
-          #print 'Serv.CpuTemp -> ' + cli.sm_func()
-          print "-> RegName: " + cli.sm_func(cli.name, 'Serv.RegName', cli.name)
-          print "-> CpuTemp: " + cli.sm_func(cli.name, 'Serv.CpuTemp', '.')
-          print "-> Quit: " + cli.sm_func(cli.name, cli.name + '.Quit', cli.name) 
+          cli.send('test')
+          msg = cli.recv()
+          print '-> ' + msg
+          
+          print "## RegName: " + cli.sm_func(cli.name, 'Serv.RegName', cli.name)
+          print "## CpuTemp: " + cli.sm_func(cli.name, 'Serv.CpuTemp', '.')
+          print "## Quit: " + cli.sm_func(cli.name, cli.name + '.Quit', cli.name) 
            
           self.assertEqual('BYE', cli.sm_func(cli.name, 'Serv.UnRegName', cli.name) )
           
