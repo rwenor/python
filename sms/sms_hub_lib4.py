@@ -16,7 +16,7 @@ def Disp_sm_SetName(name):
     
 def send_sm(con, msg):
     if (len(msg) <= 200):
-        #msg = str(len(msg)).zfill(3) + msg
+        msg = str(len(msg)).zfill(3) + msg
         con.sendall(msg)
         #time.sleep(0.1)
     else:
@@ -24,7 +24,9 @@ def send_sm(con, msg):
     
     
 def recv_sm(con):
-    return con.recv(200)
+    l = int(con.recv(3))
+    
+    return con.recv(l)
     
 
 def Disp_sm_serv(fra, til, data, con):
