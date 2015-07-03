@@ -2,7 +2,7 @@ import socket
 import sys
 import time
 from sms_pi import *
-from sms_hub_lib3 import *
+from sms_hub_lib4 import *
 import multiprocessing
 
 sm_wait = {} # Disse venter data
