@@ -12,6 +12,8 @@ while 1:
     try:
         message, address = s.recvfrom(8192)
         print "%s:\tGot message from %s: %s" % (time.ctime(), address, message)
+        
+        time.sleep(1)
         s.sendto("Hello from server", address)
         print "Listening for broadcasts..."
     except (KeyboardInterrupt, SystemExit):

@@ -30,21 +30,23 @@ while cmd <> 'q':
             #break
 
         else:
+            print t0, t1
             print "%d -> Received data from %s: %s" % ((t1 - t0)*1000, address, buf)
-            break
+            #break
         
     elif src == sys.stdin:
         cmd = sys.stdin.readline().strip() 
-        print "%d -> Received cmd: %s" % ((t1 - t0)*1000, cmd)
+        print 'Cmd: ', cmd
 
         if cmd == 'q':
             print 'Quit'
         elif cmd == 'r':
             t0 = time.time()
+            print t0
             s.sendto("Retransmit from client", dest)
         
     else:
         print "%d -> Data? from %s" % ((t1 - t0)*1000, str(src))
 
-    print 'Cmd: ', cmd
+    
 
