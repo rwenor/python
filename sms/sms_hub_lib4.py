@@ -40,7 +40,7 @@ def Disp_sm_serv(fra, til, data, con):
         data = 'ACK'
         print conDict
     elif til[0] == 'ping':
-        conDict[data] = sms_client(data, '', con)
+        #conDict[data] = sms_client(data, '', con)
         data = 'ACK'
         print conDict
     else:
