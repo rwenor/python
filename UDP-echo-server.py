@@ -13,8 +13,8 @@ while 1:
         message, address = s.recvfrom(8192)
         print "%s:\tGot message from %s: %s" % (time.ctime(), address, message)
         
-        time.sleep(1)
-        s.sendto("Hello from server", address)
+        #time.sleep(1)
+        s.sendto("Echo: " + message, address)
         print "Listening for broadcasts..."
     except (KeyboardInterrupt, SystemExit):
         raise

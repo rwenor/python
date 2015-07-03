@@ -30,7 +30,7 @@ while cmd <> 'q':
             #break
 
         else:
-            print t0, t1
+            #print t0, t1
             print "%d -> Received data from %s: %s" % ((t1 - t0)*1000, address, buf)
             #break
         
@@ -40,9 +40,13 @@ while cmd <> 'q':
 
         if cmd == 'q':
             print 'Quit'
-        elif cmd == 'r':
+            
+        elif cmd == 'r' or cmd == '':
             t0 = time.time()
-            print t0
+            print 'Retrans'
+            s.sendto("Alert", dest)
+            s.sendto("all", dest)
+            s.sendto("clients", dest)
             s.sendto("Retransmit from client", dest)
         
     else:
