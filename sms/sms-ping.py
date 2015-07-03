@@ -162,8 +162,8 @@ try:
     print 3
     
 finally:
-#    print "-> Quit: " + sm_func(sysName, sysName + '.Quit', sysName) 
-#    print "UnRegName: " + sm_func(sysName, 'Serv.UnRegName', sysName) 
+    print "-> Quit: " + sock.sm_func(sysName, sysName + '.Quit', sysName) 
+    print "UnRegName: " + sock.sm_func(sysName, 'Serv.UnRegName', sysName) 
 #    q.put('')
          
     print >>sys.stderr, 'closing socket'
