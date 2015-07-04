@@ -8,7 +8,7 @@
 import random, pygame, sys
 from pygame.locals import *
 
-FPS = 9856473
+FPS = 3
 
 WINDOWWIDTH = 640
 WINDOWHEIGHT = 480
