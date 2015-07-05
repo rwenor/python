@@ -9,7 +9,7 @@ sm_wait = {} # Disse venter data
 waiting = False
 
 
-def get_data():   
+def xget_data():   
     print 'get_data in'
      
     while True:
@@ -40,7 +40,7 @@ def get_data():
     print 'get_data ut'
     
     
-def get_data2():   
+def xget_data2():   
     print 'get_data in2'
      
     while True:
@@ -139,24 +139,16 @@ try:
     print
     print 1
     print "-> RegName: " + sock.sm_func(sysName, 'Serv.RegName', sysName)
-    print "-> ping: " + sock.sm_func(sysName, 'Serv.ping', '.')
-    print "-> ping: " + sock.sm_func(sysName, 'Serv.ping', '.')
+    print "-> CpuTemp: " + sock.sm_func(sysName, 'Serv.CpuTemp', '.')
+    print "-> CpuTemp: " + sock.sm_func(sysName, 'Serv.CpuTemp', '.')
     print "-> Test1.CpuTemp: " + sock.sm_func(sysName, 'Test1.CpuTemp', '.')
 
-    t1 = time.time()
-    sock.deb = False
-    for i in xrange(0,10):
-        t0 = time.time()
-        for j in xrange(0,100):
-            sock.sm_func(sysName, 'Serv.ping', '.')
-            
-        print 'ping: ',i, (time.time() - t0)*10, 'ms' 
-        
-        #time.sleep(0.1)
+    for i in xrange(0,0):
+        sock.sendall(sysName + '.Print\tServ.CpuTemp\t.')
+        time.sleep(0.1)
+        print i
         #print
-    print  i*j, time.time() - t1, 's'
-    
-    sock.deb = True    
+        
     print 2    
     #time.sleep(15)
     print 3
