@@ -38,7 +38,7 @@ def dprt(dstr):
 
 
 # Test-Image settings
-imgCnt = 5
+imgCnt = 20
 testWidth = 640
 testHeight = 480
 filepath = "/var/www/picam"
@@ -167,13 +167,13 @@ def img_load(stream,i,q):
     img = Image.open(stream)
     buffer = img.load()
     if i == 0:
-	dprt('0')
+        dprt('0')
         #buf0 = buffer
         buf1 = buffer
         #img0 = img
         img1 = img
     else:
-	dprt('get?')
+        dprt('get?')
         buf1 = q.get()
  
     dprt('put?')
