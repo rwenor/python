@@ -59,12 +59,11 @@ def sm_print(fra, til, data):
     
 def sm_getCpuTemp(fra, til, data):
     try:
-        #res = os.popen('vcgencmd measure_temp').readline()
-        #data = res.replace("temp=","").replace("'C\n","")
-         
-        data = '-999'    
+        res = os.popen('vcgencmd measure_temp').readline()
+        data = res.replace("temp=","").replace("'C\n","")
+
     except:
-        data = 'NAK'
+        data = '-999'
 
     return data
 
