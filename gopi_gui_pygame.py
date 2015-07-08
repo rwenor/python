@@ -64,6 +64,7 @@ def runGame():
     m_pos_last = None
     FPS = 3
     serv_temp = 0
+    serv_temp2= 1
 
     while True: # main game loop
         loopCnt += 1
@@ -81,6 +82,7 @@ def runGame():
                     direction = DOWN
                 elif (event.key == K_t):
                     serv_temp = cli.sm_func(cli.name, 'Serv.CpuTemp', '.')
+                    serv_temp2 = cli.sm_func(cli.name, 'GoPiGo.CpuTemp', '.')
                 elif event.key == K_ESCAPE:
                     terminate()
 
@@ -101,6 +103,10 @@ def runGame():
         drawWorm(wormCoords)
         drawApple(apple)
         drawScore(serv_temp)
+        
+        drawTemp(1, serv_temp)
+        drawTemp(2, serv_temp2)
+        
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
@@ -140,7 +146,8 @@ def showStartScreen():
     FPS = 10
 
     # Conect to server
-    cli = SmsTcpClient( "cli", '127.0.0.1', 9999)
+    #cli = SmsTcpClient( "cli", '127.0.0.1', 9999)
+    cli = SmsTcpClient( "gui", '192.168.1.166', 9999)
     print "## RegName: " + cli.sm_func(cli.name, 'Serv.RegName', cli.name)
     print "## CpuTemp: " + cli.sm_func(cli.name, 'Serv.CpuTemp', '.')
     
@@ -210,6 +217,11 @@ def drawScore(score):
     scoreRect.topleft = (WINDOWWIDTH - 120, 10)
     DISPLAYSURF.blit(scoreSurf, scoreRect)
 
+def drawTemp(i, temp):
+    scoreSurf = BASICFONT.render('TServ: %s' % (temp), True, WHITE)
+    scoreRect = scoreSurf.get_rect()
+    scoreRect.topleft = (WINDOWWIDTH - 120, 10 + i*20)
+    DISPLAYSURF.blit(scoreSurf, scoreRect)
 
 def drawWorm(wormCoords):
     for coord in wormCoords:
