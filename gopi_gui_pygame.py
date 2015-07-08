@@ -1,17 +1,14 @@
-# Wormy (a Nibbles clone)
-# By Al Sweigart al@inventwithpython.com
-# http://inventwithpython.com/pygame
-# Released under a "Simplified BSD" license
-
-#KRT 14/06/2012 modified Start Screen and Game Over screen to cope with mouse events
-#KRT 14/06/2012 Added a non-busy wait to Game Over screen to reduce processor loading from near 100%
 import random, pygame, sys
 from pygame.locals import *
+
+import sms_hub_lib4
+from sms_hub_lib4 import SmsTcpClient
 
 FPS = 3
 
 WINDOWWIDTH = 640
 WINDOWHEIGHT = 480
+
 CELLSIZE = 20
 assert WINDOWWIDTH % CELLSIZE == 0, "Window width must be a multiple of cell size."
 assert WINDOWHEIGHT % CELLSIZE == 0, "Window height must be a multiple of cell size."
@@ -33,6 +30,7 @@ LEFT = 'left'
 RIGHT = 'right'
 
 HEAD = 0 # syntactic sugar: index of the worm's head
+cli = None
 
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT
@@ -41,7 +39,7 @@ def main():
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
-    pygame.display.set_caption('Wormy')
+    pygame.display.set_caption('GoPiGo - Gui')
 
     showStartScreen()
     while True:
@@ -62,7 +60,13 @@ def runGame():
     apple = getRandomLocation()
 
     loopCnt = 0
+    m_pos = None
+    m_pos_last = None
+    FPS = 3
+    serv_temp = 0
+
     while True: # main game loop
+        loopCnt += 1
         for event in pygame.event.get(): # event handling loop
             if event.type == QUIT:
                 terminate()
@@ -75,47 +79,28 @@ def runGame():
                     direction = UP
                 elif (event.key == K_DOWN or event.key == K_s) and direction != UP:
                     direction = DOWN
+                elif (event.key == K_t):
+                    serv_temp = cli.sm_func(cli.name, 'Serv.CpuTemp', '.')
                 elif event.key == K_ESCAPE:
                     terminate()
 
             elif event.type == MOUSEMOTION:
-                print 'Mp: ', event.pos
+                #print 'Mp: ', loopCnt, event.pos
+                m_pos = event.pos
                 
             else:
-                loopCnt += 1
                 print loopCnt, event 
 
-        # check if the worm has hit itself or the edge
-        if wormCoords[HEAD]['x'] == -1 or wormCoords[HEAD]['x'] == CELLWIDTH or wormCoords[HEAD]['y'] == -1 or wormCoords[HEAD]['y'] == CELLHEIGHT:
-            return # game over
-        for wormBody in wormCoords[1:]:
-            if wormBody['x'] == wormCoords[HEAD]['x'] and wormBody['y'] == wormCoords[HEAD]['y']:
-                return # game over
 
-        # check if worm has eaten an apply
-        if wormCoords[HEAD]['x'] == apple['x'] and wormCoords[HEAD]['y'] == apple['y']:
-            # don't remove worm's tail segment
-            apple = getRandomLocation() # set a new apple somewhere
-            print 'appel'
-        else:
-            del wormCoords[-1] # remove worm's tail segment
-
-        # move the worm by adding a segment in the direction it is moving
-        if direction == UP:
-            newHead = {'x': wormCoords[HEAD]['x'], 'y': wormCoords[HEAD]['y'] - 1}
-        elif direction == DOWN:
-            newHead = {'x': wormCoords[HEAD]['x'], 'y': wormCoords[HEAD]['y'] + 1}
-        elif direction == LEFT:
-            newHead = {'x': wormCoords[HEAD]['x'] - 1, 'y': wormCoords[HEAD]['y']}
-        elif direction == RIGHT:
-            newHead = {'x': wormCoords[HEAD]['x'] + 1, 'y': wormCoords[HEAD]['y']}
-        wormCoords.insert(0, newHead)
+        if m_pos <> m_pos_last:
+            m_pos_last = m_pos
+            print 'Mp: ', loopCnt, m_pos
         
         DISPLAYSURF.fill(BGCOLOR)
         drawGrid()
         drawWorm(wormCoords)
         drawApple(apple)
-        drawScore(len(wormCoords) - 3)
+        drawScore(serv_temp)
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
@@ -142,16 +127,27 @@ def checkForKeyPress():
 
     
 def showStartScreen():
+    global cli
     titleFont = pygame.font.Font('freesansbold.ttf', 100)
-    titleSurf1 = titleFont.render('Wormy!', True, WHITE, DARKGREEN)
-    titleSurf2 = titleFont.render('Wormy!', True, GREEN)
+    titleSurf1 = titleFont.render('GoPiGo!', True, WHITE, DARKGREEN)
+    titleSurf2 = titleFont.render('GoPiGo!', True, GREEN)
 
     degrees1 = 0
     degrees2 = 0
     
 #KRT 14/06/2012 rewrite event detection to deal with mouse use
     pygame.event.get()  #clear out event queue
+    FPS = 10
+
+    # Conect to server
+    cli = SmsTcpClient( "cli", '127.0.0.1', 9999)
+    print "## RegName: " + cli.sm_func(cli.name, 'Serv.RegName', cli.name)
+    print "## CpuTemp: " + cli.sm_func(cli.name, 'Serv.CpuTemp', '.')
     
+
+    
+
+
     while True:
         DISPLAYSURF.fill(BGCOLOR)
         rotatedSurf1 = pygame.transform.rotate(titleSurf1, degrees1)
@@ -175,6 +171,9 @@ def showStartScreen():
 
 
 def terminate():
+    global cli
+    cli.sm_func(cli.name, 'Serv.UnRegName', cli.name)
+    
     pygame.quit()
     sys.exit()
 
