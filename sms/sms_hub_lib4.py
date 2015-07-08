@@ -196,6 +196,7 @@ class SmsTcpClient:
         print >>sys.stderr, 'Connect to %s on port %s' % self.addr
         self.sock.connect(self.addr)
         self.deb = True
+        self.waiting = None
         #self.disp_sm = Disp_sm_pi
 
 
@@ -274,17 +275,17 @@ class SmsTcpClient:
             
             amount_received += len(msg)
             #print >>sys.stderr, 'received "%s"' % data
-            print 'w: ' + str(waiting) + '-' + l[1] + '\t' + l[0]
-            if waiting == l[1] + '\t' + l[0]:
+            #print 'w: ' + str(waiting) + '-' + l[1] + '\t' + l[0]
+            if self.waiting == l[1] + '\t' + l[0]:
                 q.put(msg)
             else:
                 til = l[1].split('.')
                 til.pop(0)
-                l[2] = disp_sm(l[0], til, l[2], sock)
+                l[2] = Disp_sm_pi(l[0], til, l[2], self.sock)
                 if l[2]:
                     data = l[1] + '\t' + l[0] + '\t' + l[2]
                     print >>sys.stderr, 'sending data back: ' + data
-                    self.send(self.sock, data)
+                    self.send(data)
             
         print 'get_data ut2'
 
