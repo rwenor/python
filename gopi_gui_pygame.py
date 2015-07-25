@@ -89,7 +89,7 @@ def runGame():
     loopCnt = 0
     m_pos = None
     m_pos_last = None
-    FPS = 3
+    FPS = 30
 
     while True: # main game loop
         loopCnt += 1
@@ -106,21 +106,26 @@ def runGame():
                 elif (event.key == K_RIGHT or event.key == K_d) and direction != LEFT:
                     direction = RIGHT
                 elif (event.key == K_UP or event.key == K_w) and direction != DOWN:
-                    direction = UP
+                    cli.sendSM('GVolt', 'GoPiGo.cmd.w', '.')
                 elif (event.key == K_DOWN or event.key == K_s) and direction != UP:
                     direction = DOWN
                 elif (event.key == K_t):
                     serv_temp = cli.sm_func(cli.name, 'Serv.CpuTemp', '.')
                     serv_temp2 = cli.sm_func(cli.name, 'GoPiGo.CpuTemp', '.')
                 elif (event.key == K_e):
+                    cli.sendSM('GVolt', 'GoPiGo.cmd.b', '.')
                     serv_temp = ''                    
                     serv_temp2 = ''
                 elif (event.key == K_r):
                     cli.sendSM('STemp', 'Serv.CpuTemp', '.')
                     cli.sendSM('STemp2', 'GoPiGo.CpuTemp', '.')
+                elif (event.key == K_v):
+                    cli.sendSM('GVolt', 'GoPiGo.cmd.v', '.')
+                    cli.sendSM('STemp2', 'GoPiGo.CpuTemp', '.')
                 elif event.key == K_ESCAPE or event.key == K_q:
                     terminate()
-
+            elif event.type == KEYUP:
+                cli.sendSM('GVolt', 'GoPiGo.cmd.x', '.')
             elif event.type == MOUSEMOTION:
                 #print 'Mp: ', loopCnt, event.pos
                 m_pos = event.pos
