@@ -1,10 +1,10 @@
 import random, pygame, sys
 from pygame.locals import *
 
-import sms_hub_lib4
-from sms_hub_lib4 import SmsTcpClient
+from sms.sms_hub_lib4 import SmsTcpClient
+from sms.sms_pi import Disp_sm_pi
 
-FPS = 3
+FPS = 30
 
 WINDOWWIDTH = 640
 WINDOWHEIGHT = 480
@@ -32,6 +32,31 @@ RIGHT = 'right'
 HEAD = 0 # syntactic sugar: index of the worm's head
 cli = None
 
+serv_temp = 0
+serv_temp2= 1
+
+
+def Disp_sm_gui(fra, til, data, con):
+    global serv_temp, serv_temp2
+    
+    #print fra, til, data
+    if til[0] == 'STemp':
+        serv_temp = data
+        data = None
+    elif til[0] == 'STemp2':
+        serv_temp2 = data
+        data = None
+    elif til[0] == 'ping':
+        #conDict[data] = sms_client(data, '', con)
+        data = 'ACK'
+        print conDict
+    else:
+        #print 'DISP_SM'
+        data = Disp_sm_pi(fra, til, data, con)
+            
+    return data
+    
+    
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT
 
@@ -48,6 +73,8 @@ def main():
 
 
 def runGame():
+    global serv_temp, serv_temp2
+    
     # Set a random start point.
     startx = random.randint(5, CELLWIDTH - 6)
     starty = random.randint(5, CELLHEIGHT - 6)
@@ -63,11 +90,13 @@ def runGame():
     m_pos = None
     m_pos_last = None
     FPS = 3
-    serv_temp = 0
-    serv_temp2= 1
 
     while True: # main game loop
         loopCnt += 1
+        
+        while cli.disp_sms(Disp_sm_gui) == True:
+            pass
+        
         for event in pygame.event.get(): # event handling loop
             if event.type == QUIT:
                 terminate()
@@ -83,7 +112,13 @@ def runGame():
                 elif (event.key == K_t):
                     serv_temp = cli.sm_func(cli.name, 'Serv.CpuTemp', '.')
                     serv_temp2 = cli.sm_func(cli.name, 'GoPiGo.CpuTemp', '.')
-                elif event.key == K_ESCAPE:
+                elif (event.key == K_e):
+                    serv_temp = ''                    
+                    serv_temp2 = ''
+                elif (event.key == K_r):
+                    cli.sendSM('STemp', 'Serv.CpuTemp', '.')
+                    cli.sendSM('STemp2', 'GoPiGo.CpuTemp', '.')
+                elif event.key == K_ESCAPE or event.key == K_q:
                     terminate()
 
             elif event.type == MOUSEMOTION:
@@ -102,10 +137,10 @@ def runGame():
         drawGrid()
         drawWorm(wormCoords)
         drawApple(apple)
-        drawScore(serv_temp)
+        #drawScore(serv_temp)
         
-        drawTemp(1, serv_temp)
-        drawTemp(2, serv_temp2)
+        drawTemp(1, "SMS hub", serv_temp)
+        drawTemp(2, "GoPiGo", serv_temp2)
         
         pygame.display.update()
         FPSCLOCK.tick(FPS)
@@ -217,10 +252,10 @@ def drawScore(score):
     scoreRect.topleft = (WINDOWWIDTH - 120, 10)
     DISPLAYSURF.blit(scoreSurf, scoreRect)
 
-def drawTemp(i, temp):
-    scoreSurf = BASICFONT.render('TServ: %s' % (temp), True, WHITE)
+def drawTemp(i, servName, temp):
+    scoreSurf = BASICFONT.render('%s: %s' % (servName, temp), True, WHITE)
     scoreRect = scoreSurf.get_rect()
-    scoreRect.topleft = (WINDOWWIDTH - 120, 10 + i*20)
+    scoreRect.topleft = (WINDOWWIDTH - 220, 10 + i*20)
     DISPLAYSURF.blit(scoreSurf, scoreRect)
 
 def drawWorm(wormCoords):
