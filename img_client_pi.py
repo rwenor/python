@@ -7,8 +7,8 @@ import picamera
 # Connect a client socket to my_server:8000 (change my_server to the
 # hostname of your server)
 client_socket = socket.socket()
-client_socket.connect(('0.0.0.0', 8000))
-#client_socket.connect(('192.168.1.201', 8000))
+#client_socket.connect(('0.0.0.0', 8000))
+client_socket.connect(('192.168.1.201', 8000))
 
 # Make a file-like object out of the connection
 connection = client_socket.makefile('wb')
@@ -32,11 +32,11 @@ try:
 
             print stream.tell()
             
-#            connection.write(struct.pack('>L', stream.tell()))
-#            connection.flush()
+            connection.write(struct.pack('>L', stream.tell()))
+            connection.flush()
             # Rewind the stream and send the image data over the wire
             stream.seek(0)
-#            connection.write(stream.read())
+            connection.write(stream.read())
 
             print 'Done'
             
