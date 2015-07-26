@@ -93,6 +93,8 @@ def runGame():
     m_pos_last = (-1,-1)
     m_down = None
     
+    img=pygame.image.load('test.jpg')
+    
     FPS = 3
 
     while True: # main game loop
@@ -167,9 +169,11 @@ def runGame():
             print 'Mp: ', loopCnt, m_pos
             print 'go: ', loopCnt, aspd, dspd
         
-        DISPLAYSURF.fill(BGCOLOR)
+        
+        #DISPLAYSURF.fill(BGCOLOR)
+        DISPLAYSURF.blit(img,(0,0))
         drawGrid()
-        drawWorm(wormCoords)
+        #drawWorm(wormCoords)
         drawApple(apple)
         #drawScore(serv_temp)
         
@@ -314,9 +318,9 @@ def drawApple(coord):
 
 
 def drawGrid():
-    for x in range(0, WINDOWWIDTH, CELLSIZE): # draw vertical lines
+    for x in range(0, WINDOWWIDTH, CELLSIZE*4): # draw vertical lines
         pygame.draw.line(DISPLAYSURF, DARKGRAY, (x, 0), (x, WINDOWHEIGHT))
-    for y in range(0, WINDOWHEIGHT, CELLSIZE): # draw horizontal lines
+    for y in range(0, WINDOWHEIGHT, CELLSIZE*4): # draw horizontal lines
         pygame.draw.line(DISPLAYSURF, DARKGRAY, (0, y), (WINDOWWIDTH, y))
 
 
