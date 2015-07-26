@@ -1,4 +1,5 @@
 import socket
+import select
 import sys
 import time
 import os
@@ -210,6 +211,13 @@ class SmsTcpClient:
         send_sm(self.sock, msg)
             
 
+    def sendSM(self, fra, til, msg):
+        msg = self.name + '.' + fra + '\t' + til + '\t' + msg
+        if self.deb:
+            print '<c ', str(msg)
+        send_sm(self.sock, msg)
+
+
     def recv(self):
         msg = recv_sm(self.sock)
         if self.deb:
@@ -249,7 +257,7 @@ class SmsTcpClient:
 
 
     def get_data2(self):   
-        print 'get_data in2'
+        print 'XXX get_data in2'
      
         while True:
             amount_received = 0
@@ -289,6 +297,53 @@ class SmsTcpClient:
             
         print 'get_data ut2'
 
+
+    def disp_sms(self, disp_func):   
+        
+        inputready,outputready,exceptready = select.select([self.sock],[],[],0)
+
+        #print inputready
+  
+        # Les fra socket
+        for src in inputready:  
+            if src == self.sock: 
+                amount_received = 0
+                print 'recv'
+                msg = self.recv()
+                print 'get_data -> ' + str(msg)
+                if msg:
+                
+                    l = msg.strip().split('\t')
+                
+                    til = l[1].split('.')
+                    print til
+                
+                    if til[-1] == 'Quit':
+                        print 'break'
+                        q.put(msg)
+                    
+                else:
+                    print 'get_data return'
+                    sock.close()
+                    return
+                
+                amount_received += len(msg)
+                #print >>sys.stderr, 'received "%s"' % data
+                print 'w: ' + str(self.waiting) + '-' + l[1] + '\t' + l[0]
+                if self.waiting == l[1] + '\t' + l[0]:
+                    q.put(msg)
+                else:
+                    print "--------------"
+                    til = l[1].split('.')
+                    til.pop(0)
+                    l[2] = disp_func(l[0], til, l[2], self.sock)
+                    if l[2]:
+                        data = l[1] + '\t' + l[0] + '\t' + l[2]
+                        print >>sys.stderr, 'sending data back: ' + data
+                        self.send(data)
+                    return True
+            
+            #print 'disp_sm ut2'
 
         
 if __name__ == '__main__':
