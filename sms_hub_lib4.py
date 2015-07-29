@@ -3,7 +3,7 @@ import sys
 import time
 import os
 import threading
-from sms_pi import *
+#from sms_pi4 import *
 
 
 conDict = {}

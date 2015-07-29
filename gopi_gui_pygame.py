@@ -1,10 +1,10 @@
 import random, pygame, sys
 from pygame.locals import *
 
-import sms_hub_lib4
-from sms_hub_lib4 import SmsTcpClient
+from sms.sms_hub_lib4 import SmsTcpClient
+from sms.sms_pi import Disp_sm_pi
 
-FPS = 3
+FPS = 30
 
 WINDOWWIDTH = 640
 WINDOWHEIGHT = 480
@@ -32,6 +32,33 @@ RIGHT = 'right'
 HEAD = 0 # syntactic sugar: index of the worm's head
 cli = None
 
+serv_temp = 0
+serv_temp2 = 1
+gopi_volt = ''
+
+
+def Disp_sm_gui(fra, til, data, con):
+    global serv_temp, serv_temp2, gopi_volt
+    
+    rdata = None
+    #print fra, til, data
+    if til[0] == 'STemp':
+        serv_temp = data
+    elif til[0] == 'STemp2':
+        serv_temp2 = data
+    elif til[0] == 'GVolt':
+        gopi_volt = data
+    elif til[0] == 'ping':
+        #conDict[data] = sms_client(data, '', con)
+        rdata = 'ACK'
+        print conDict
+    else:
+        #print 'DISP_SM'
+        rdata = Disp_sm_pi(fra, til, data, con)
+            
+    return rdata
+    
+    
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT
 
@@ -48,6 +75,8 @@ def main():
 
 
 def runGame():
+    global serv_temp, serv_temp2, gopi_volt
+    
     # Set a random start point.
     startx = random.randint(5, CELLWIDTH - 6)
     starty = random.randint(5, CELLHEIGHT - 6)
@@ -60,47 +89,94 @@ def runGame():
     apple = getRandomLocation()
 
     loopCnt = 0
-    m_pos = None
-    m_pos_last = None
+    m_pos = (-1,-1)
+    m_pos_last = (-1,-1)
+    m_down = None
+    
     FPS = 3
-    serv_temp = 0
 
     while True: # main game loop
         loopCnt += 1
+        
+        while cli.disp_sms(Disp_sm_gui) == True:
+            pass
+        
         for event in pygame.event.get(): # event handling loop
             if event.type == QUIT:
                 terminate()
             elif event.type == KEYDOWN:
-                if (event.key == K_LEFT or event.key == K_a) and direction != RIGHT:
-                    direction = LEFT
-                elif (event.key == K_RIGHT or event.key == K_d) and direction != LEFT:
-                    direction = RIGHT
-                elif (event.key == K_UP or event.key == K_w) and direction != DOWN:
-                    direction = UP
-                elif (event.key == K_DOWN or event.key == K_s) and direction != UP:
-                    direction = DOWN
+                if (event.key == K_LEFT or event.key == K_a):
+                    cli.sendSM('GVolt', 'GoPiGo.cmd.a', '.')
+                elif (event.key == K_RIGHT or event.key == K_d):
+                    cli.sendSM('GVolt', 'GoPiGo.cmd.d', '.')
+                elif (event.key == K_UP or event.key == K_w):
+                    cli.sendSM('GVolt', 'GoPiGo.cmd.w', '.')
+                elif (event.key == K_DOWN or event.key == K_s):
+                    cli.sendSM('GVolt', 'GoPiGo.cmd.s', '.')
                 elif (event.key == K_t):
-                    serv_temp = cli.sm_func(cli.name, 'Serv.CpuTemp', '.')
-                elif event.key == K_ESCAPE:
+                    cli.sendSM('GVolt', 'GoPiGo.cmd.t', '.')
+                elif (event.key == K_g):
+                    cli.sendSM('GVolt', 'GoPiGo.cmd.g', '.')
+                elif (event.key == K_e):
+                    cli.sendSM('GVolt', 'GoPiGo.cmd.b', '.')
+                    serv_temp = ''                    
+                    serv_temp2 = ''
+                    gopi_volt = ''
+                elif (event.key == K_r):
+                    cli.sendSM('STemp', 'Serv.CpuTemp', '.')
+                    cli.sendSM('STemp2', 'GoPiGo.CpuTemp', '.')
+                elif (event.key == K_v):
+                    cli.sendSM('GVolt', 'GoPiGo.cmd.v', '.')
+                    cli.sendSM('STemp2', 'GoPiGo.CpuTemp', '.')
+                elif event.key == K_ESCAPE or event.key == K_q:
                     terminate()
-
+            elif event.type == KEYUP:
+                cli.sendSM('GVolt', 'GoPiGo.cmd.x', '.')
+                
             elif event.type == MOUSEMOTION:
                 #print 'Mp: ', loopCnt, event.pos
                 m_pos = event.pos
+            elif event.type == MOUSEBUTTONDOWN:
+                #print 'Mp: ', loopCnt, event.pos
+                cli.sendSM('GVolt', 'GoPiGo.cmd.w', '.')
+                m_down = True
+                m_pos = event.pos    
+                m_pos_last = (-1,-1)
+            elif event.type == MOUSEBUTTONUP:
+                #print 'Mp: ', loopCnt, event.pos
+                
+                cli.sendSM('GVolt', 'GoPiGo.cmd.x', '.')
+                cli.sendSM('GVolt', 'GoPiGo.cmd.as', str(0))
+                cli.sendSM('GVolt', 'GoPiGo.cmd.ds', str(0))
+                m_down = False         
                 
             else:
                 print loopCnt, event 
 
 
         if m_pos <> m_pos_last:
+            
+            aspd =   -(m_pos[1] - WINDOWHEIGHT/2)/2 + (m_pos[0] - WINDOWWIDTH/2)/4
+            dspd =   -(m_pos[1] - WINDOWHEIGHT/2)/2 - (m_pos[0] - WINDOWWIDTH/2)/4
+            
+            if m_down:
+                cli.sendSM('GVolt', 'GoPiGo.cmd.as', str(aspd))
+                cli.sendSM('GVolt', 'GoPiGo.cmd.ds', str(dspd))
+                 
             m_pos_last = m_pos
             print 'Mp: ', loopCnt, m_pos
+            print 'go: ', loopCnt, aspd, dspd
         
         DISPLAYSURF.fill(BGCOLOR)
         drawGrid()
         drawWorm(wormCoords)
         drawApple(apple)
-        drawScore(serv_temp)
+        #drawScore(serv_temp)
+        
+        drawTemp(1, "SMS hub", serv_temp)
+        drawTemp(2, "GoPi Temp", serv_temp2)
+        drawTemp(3, "GoPi Volt", gopi_volt)
+        
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
@@ -140,7 +216,8 @@ def showStartScreen():
     FPS = 10
 
     # Conect to server
-    cli = SmsTcpClient( "cli", '127.0.0.1', 9999)
+    #cli = SmsTcpClient( "cli", '127.0.0.1', 9999)
+    cli = SmsTcpClient( "gui", '192.168.1.166', 9999)
     print "## RegName: " + cli.sm_func(cli.name, 'Serv.RegName', cli.name)
     print "## CpuTemp: " + cli.sm_func(cli.name, 'Serv.CpuTemp', '.')
     
@@ -180,6 +257,7 @@ def terminate():
 
 def getRandomLocation():
     return {'x': random.randint(0, CELLWIDTH - 1), 'y': random.randint(0, CELLHEIGHT - 1)}
+    #{'x': random.randint(0, CELLWIDTH - 1), 'y': random.randint(0, CELLHEIGHT - 1)}
 
 
 def showGameOverScreen():
@@ -210,6 +288,11 @@ def drawScore(score):
     scoreRect.topleft = (WINDOWWIDTH - 120, 10)
     DISPLAYSURF.blit(scoreSurf, scoreRect)
 
+def drawTemp(i, servName, temp):
+    scoreSurf = BASICFONT.render('%s: %s' % (servName, temp), True, WHITE)
+    scoreRect = scoreSurf.get_rect()
+    scoreRect.topleft = (WINDOWWIDTH - 220, 10 + i*20)
+    DISPLAYSURF.blit(scoreSurf, scoreRect)
 
 def drawWorm(wormCoords):
     for coord in wormCoords:
@@ -222,11 +305,12 @@ def drawWorm(wormCoords):
 
 
 def drawApple(coord):
-    x = coord['x'] * CELLSIZE
-    y = coord['y'] * CELLSIZE
+    x = WINDOWWIDTH / 2 #coord['x'] * CELLSIZE
+    y = WINDOWHEIGHT / 2 #coord['y'] * CELLSIZE
     #appleRect = pygame.Rect(x, y, CELLSIZE, CELLSIZE)
     #pygame.draw.rect(DISPLAYSURF, RED, appleRect)
-    pygame.draw.circle(DISPLAYSURF, RED, (x + CELLSIZE/2, y + CELLSIZE/2), CELLSIZE/2)
+    #pygame.draw.circle(DISPLAYSURF, RED, (x + CELLSIZE/2, y + CELLSIZE/2), CELLSIZE/2)
+    pygame.draw.circle(DISPLAYSURF, RED, (x , y), CELLSIZE/2)
 
 
 def drawGrid():
