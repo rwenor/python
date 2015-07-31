@@ -3,6 +3,7 @@ from pygame.locals import *
 
 from sms.sms_hub_lib4 import SmsTcpClient
 from sms.sms_pi import Disp_sm_pi
+import time
 
 FPS = 30
 
@@ -35,6 +36,7 @@ cli = None
 serv_temp = 0
 serv_temp2 = 1
 gopi_volt = ''
+gopi_fwd = None
 
 
 def Disp_sm_gui(fra, til, data, con):
@@ -73,9 +75,32 @@ def main():
         runGame()
         showGameOverScreen()
 
+def senterPos(m_pos):            
+    mx = (m_pos[0] - WINDOWWIDTH/2)
+    my = (m_pos[1] - WINDOWHEIGHT/2)
+    return mx, my
 
+
+def compSpd(m_pos):
+    aspd =   -(m_pos[1] - WINDOWHEIGHT/2)/2 + (m_pos[0] - WINDOWWIDTH/2)/4
+    dspd =   -(m_pos[1] - WINDOWHEIGHT/2)/2 - (m_pos[0] - WINDOWWIDTH/2)/4
+        
+    if not gopi_fwd:
+        aspd = -aspd
+        dspd = -dspd
+        
+    if aspd < 0:
+        dspd -= aspd
+        aspd = 0
+    if dspd < 0:
+        aspd -= dspd
+        dspd = 0
+            
+    return aspd, dspd
+    
+            
 def runGame():
-    global serv_temp, serv_temp2, gopi_volt
+    global serv_temp, serv_temp2, gopi_volt, gopi_fwd
     
     # Set a random start point.
     startx = random.randint(5, CELLWIDTH - 6)
@@ -117,6 +142,13 @@ def runGame():
                     cli.sendSM('GVolt', 'GoPiGo.cmd.s', '.')
                 elif (event.key == K_t):
                     cli.sendSM('GVolt', 'GoPiGo.cmd.t', '.')
+                elif (event.key == K_p):
+                    #cli.sendSM('GVolt', 'GoPiGo.ping', '.')
+                    t0 = time.time()
+                    cli.sm_func(cli.name, 'GoPiGo.ping', '.')
+                    time.sleep(0.1)
+                    print 'ping: ', (time.time() - t0)*100, 'ms' 
+
                 elif (event.key == K_g):
                     cli.sendSM('GVolt', 'GoPiGo.cmd.g', '.')
                 elif (event.key == K_e):
@@ -140,10 +172,20 @@ def runGame():
                 m_pos = event.pos
             elif event.type == MOUSEBUTTONDOWN:
                 #print 'Mp: ', loopCnt, event.pos
-                cli.sendSM('GVolt', 'GoPiGo.cmd.w', '.')
+                #cli.sendSM('GVolt', 'GoPiGo.cmd.w', '.')
                 m_down = True
                 m_pos = event.pos    
                 m_pos_last = (-1,-1)
+                
+                mx, my = senterPos(m_pos)
+                
+                if gopi_fwd and my > 0:
+                    gopi_fwd = False
+             #       cli.sendSM('GVolt', 'GoPiGo.cmd.s', '.') # bwd
+                elif not gopi_fwd and my < 0:
+                    gopi_fwd = True
+             #       cli.sendSM('GVolt', 'GoPiGo.cmd.w', '.') # fwd
+                    
             elif event.type == MOUSEBUTTONUP:
                 #print 'Mp: ', loopCnt, event.pos
                 
@@ -158,13 +200,21 @@ def runGame():
 
         if m_pos <> m_pos_last:
             
-            aspd =   -(m_pos[1] - WINDOWHEIGHT/2)/2 + (m_pos[0] - WINDOWWIDTH/2)/4
-            dspd =   -(m_pos[1] - WINDOWHEIGHT/2)/2 - (m_pos[0] - WINDOWWIDTH/2)/4
+            mx, my = senterPos(m_pos)
+                    
+            aspd, dspd = compSpd(m_pos)
             
-            if m_down:
+            if m_down:        
                 cli.sendSM('GVolt', 'GoPiGo.cmd.as', str(aspd))
                 cli.sendSM('GVolt', 'GoPiGo.cmd.ds', str(dspd))
-                 
+                
+                if my >= 0:
+                    gopi_fwd = False
+                    cli.sendSM('GVolt', 'GoPiGo.cmd.s', '.') # bwd
+                elif my < 0:
+                    gopi_fwd = True
+                    cli.sendSM('GVolt', 'GoPiGo.cmd.w', '.') # fwd
+                     
             m_pos_last = m_pos
             print 'Mp: ', loopCnt, m_pos
             print 'go: ', loopCnt, aspd, dspd
@@ -319,7 +369,7 @@ def drawApple(coord):
 
 def drawGrid():
     for x in range(0, WINDOWWIDTH, CELLSIZE*4): # draw vertical lines
-        pygame.draw.line(DISPLAYSURF, DARKGRAY, (x, 0), (x, WINDOWHEIGHT))
+        pygame.draw.line(DISPLAYSURF, DARKGRAY, (x-40, 0), (x+40, WINDOWHEIGHT))
     for y in range(0, WINDOWHEIGHT, CELLSIZE*4): # draw horizontal lines
         pygame.draw.line(DISPLAYSURF, DARKGRAY, (0, y), (WINDOWWIDTH, y))
 
