@@ -298,9 +298,9 @@ class SmsTcpClient:
         print 'get_data ut2'
 
 
-    def disp_sms(self, disp_func):   
+    def disp_sms(self, disp_func, timeout = 0):   
         
-        inputready,outputready,exceptready = select.select([self.sock],[],[],0)
+        inputready,outputready,exceptready = select.select([self.sock],[],[],timeout)
 
         #print inputready
   
@@ -308,15 +308,15 @@ class SmsTcpClient:
         for src in inputready:  
             if src == self.sock: 
                 amount_received = 0
-                print 'recv'
+                #print 'recv'
                 msg = self.recv()
-                print 'get_data -> ' + str(msg)
+                #print 'get_data -> ' + str(msg)
                 if msg:
                 
                     l = msg.strip().split('\t')
                 
                     til = l[1].split('.')
-                    print til
+                    #print til
                 
                     if til[-1] == 'Quit':
                         print 'break'
@@ -329,7 +329,7 @@ class SmsTcpClient:
                 
                 amount_received += len(msg)
                 #print >>sys.stderr, 'received "%s"' % data
-                print 'w: ' + str(self.waiting) + '-' + l[1] + '\t' + l[0]
+                #print 'w: ' + str(self.waiting) + '-' + l[1] + '\t' + l[0]
                 if self.waiting == l[1] + '\t' + l[0]:
                     q.put(msg)
                 else:
