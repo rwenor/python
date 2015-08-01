@@ -113,11 +113,13 @@ class PingGrf(object):
     def __init__(self, name, size):
         self.name = name
         self.size = size
-        self.data = []
+        self.data1 = []
+        self.data2 = []
         self.surf = None
         
         for i in xrange(0, size):
-            self.data.append( sin(i*90) )
+            self.data1.append( sin(i*90) )
+            self.data2.append( sin(i*90) )
 
 
     def draw(self):
@@ -128,7 +130,8 @@ class PingGrf(object):
         fig = pylab.figure(figsize=[3, 1.5], # Inches
                    dpi=100,   )
         ax = fig.gca()
-        ax.plot(self.data)
+        ax.plot(self.data1)
+        ax.plot(self.data2)
          
         canvas = agg.FigureCanvasAgg(fig)
         canvas.draw()
@@ -139,11 +142,17 @@ class PingGrf(object):
         #ax.close()
         
         
-    def addData(self, val):
+    def addData1(self, val):
         
         print int(val)
-        self.data = self.data[1:] + [int(val)]
-        self.make()
+        self.data1 = self.data1[1:] + [int(val)]
+        #self.make()
+
+    def addData2(self, val):
+        
+        print int(val)
+        self.data2 = self.data2[1:] + [int(val)]
+        #self.make()
 
             
 def runGame():
@@ -278,12 +287,22 @@ def runGame():
     
     
         if loopCnt % (FPS*10) == 0: 
+            
             t0 = pygame.time.get_ticks() #time.time()                
             cli.sm_func(cli.name, 'GoPiGo.ping', '.')
             td = (pygame.time.get_ticks() - t0)
-            pingGrf.addData(td)
+            pingGrf.addData1(td)
             #time.sleep(0.1)
             print 'ping: ', td, 'ms'
+            
+            t0 = pygame.time.get_ticks() #time.time()                
+            cli.sm_func(cli.name, 'Serv.ping', '.')
+            td = (pygame.time.get_ticks() - t0)
+            pingGrf.addData2(td)
+            #time.sleep(0.1)
+            print 'ping: ', td, 'ms'
+            
+            pingGrf.make()
         
         #DISPLAYSURF.fill(BGCOLOR)
         DISPLAYSURF.blit(img,(0,0))
