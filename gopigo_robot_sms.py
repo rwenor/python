@@ -118,9 +118,9 @@ def Disp_sm_gopigo(fra, til, data, con):
         
         
     elif til[0] == 'ping':
-        #conDict[data] = sms_client(data, '', con)
+
         rdata = 'ACK'
-        print conDict
+
     else:
         #print 'DISP_SM'
         rdata = Disp_sm_pi(fra, til, data, con)
@@ -155,6 +155,7 @@ try:
         #time.sleep(0.1)
         sms.disp_sms( Disp_sm_gopigo, 3 )
 
-finally:    
+finally:
+    print 'Exit...'
     print sms.sm_func(sms.name, 'Serv.UnRegName', sms.name)
     print "BYE"
