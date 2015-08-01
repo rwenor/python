@@ -1,9 +1,18 @@
 import random, pygame, sys
 from pygame.locals import *
+from math import *
 
 from sms.sms_hub_lib4 import SmsTcpClient
 from sms.sms_pi import Disp_sm_pi
-import time
+import time 
+
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.backends.backend_agg as agg
+import pylab
+ 
+
+
 
 FPS = 30
 
@@ -98,6 +107,44 @@ def compSpd(m_pos):
             
     return aspd, dspd
     
+    
+class PingGrf(object):
+
+    def __init__(self, name, size):
+        self.name = name
+        self.size = size
+        self.data = []
+        self.surf = None
+        
+        for i in xrange(0, size):
+            self.data.append( sin(i*90) )
+
+
+    def draw(self):
+        DISPLAYSURF.blit(self.surf, (0,0))
+
+        
+    def make(self):
+        fig = pylab.figure(figsize=[3, 1.5], # Inches
+                   dpi=100,   )
+        ax = fig.gca()
+        ax.plot(self.data)
+         
+        canvas = agg.FigureCanvasAgg(fig)
+        canvas.draw()
+        renderer = canvas.get_renderer()
+        raw_data = renderer.tostring_rgb() 
+        size = canvas.get_width_height()
+        self.surf = pygame.image.fromstring(raw_data, size, "RGB")
+        #ax.close()
+        
+        
+    def addData(self, val):
+        
+        print int(val)
+        self.data = self.data[1:] + [int(val)]
+        self.make()
+
             
 def runGame():
     global serv_temp, serv_temp2, gopi_volt, gopi_fwd
@@ -117,10 +164,12 @@ def runGame():
     m_pos = (-1,-1)
     m_pos_last = (-1,-1)
     m_down = None
+    pingGrf = PingGrf('Ping', 100)
+    pingGrf.make()
     
     img=pygame.image.load('test.jpg')
     
-    FPS = 3
+    FPS = 5
 
     while True: # main game loop
         loopCnt += 1
@@ -142,11 +191,19 @@ def runGame():
                     cli.sendSM('GVolt', 'GoPiGo.cmd.s', '.')
                 elif (event.key == K_t):
                     cli.sendSM('GVolt', 'GoPiGo.cmd.t', '.')
+                    
                 elif (event.key == K_p):
                     #cli.sendSM('GVolt', 'GoPiGo.ping', '.')
                     t0 = time.time()
                     cli.sm_func(cli.name, 'GoPiGo.ping', '.')
                     time.sleep(0.1)
+                    print 'ping: ', (time.time() - t0)*100, 'ms' 
+                elif (event.key == K_o):
+                    #cli.sendSM('GVolt', 'GoPiGo.ping', '.')
+                    t0 = time.time()
+                    cli.sm_func(cli.name, 'Serv.ping', '.')
+                    pingGrf.addData((time.time() - t0)*100)
+                    #time.sleep(0.1)
                     print 'ping: ', (time.time() - t0)*100, 'ms' 
 
                 elif (event.key == K_g):
@@ -218,7 +275,15 @@ def runGame():
             m_pos_last = m_pos
             print 'Mp: ', loopCnt, m_pos
             print 'go: ', loopCnt, aspd, dspd
-        
+    
+    
+        if loopCnt % (FPS*10) == 0: 
+            t0 = pygame.time.get_ticks() #time.time()                
+            cli.sm_func(cli.name, 'GoPiGo.ping', '.')
+            td = (pygame.time.get_ticks() - t0)
+            pingGrf.addData(td)
+            #time.sleep(0.1)
+            print 'ping: ', td, 'ms'
         
         #DISPLAYSURF.fill(BGCOLOR)
         DISPLAYSURF.blit(img,(0,0))
@@ -231,6 +296,7 @@ def runGame():
         drawTemp(2, "GoPi Temp", serv_temp2)
         drawTemp(3, "GoPi Volt", gopi_volt)
         
+        pingGrf.draw()
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
@@ -275,11 +341,8 @@ def showStartScreen():
     print "## RegName: " + cli.sm_func(cli.name, 'Serv.RegName', cli.name)
     print "## CpuTemp: " + cli.sm_func(cli.name, 'Serv.CpuTemp', '.')
     
-
-    
-
-
-    while True:
+    t0 = time.time()
+    while time.time() - t0 < 0.1:
         DISPLAYSURF.fill(BGCOLOR)
         rotatedSurf1 = pygame.transform.rotate(titleSurf1, degrees1)
         rotatedRect1 = rotatedSurf1.get_rect()

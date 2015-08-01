@@ -199,6 +199,7 @@ class SmsTcpClient:
         self.deb = True
         self.waiting = None
         #self.disp_sm = Disp_sm_pi
+        self.t0 = time.time()
 
 
     def close(self):
@@ -206,22 +207,33 @@ class SmsTcpClient:
 
         
     def send(self, msg):
+        
         if self.deb:
-            print '<c ', str(msg)
+            t1 = (time.time() - self.t0)* 1000
+            print '<c ', t1, str(msg)
+            self.t0 = time.time()
+            
         send_sm(self.sock, msg)
             
 
     def sendSM(self, fra, til, msg):
         msg = self.name + '.' + fra + '\t' + til + '\t' + msg
         if self.deb:
-            print '<c ', str(msg)
+            #print '<c ', str(msg)
+            t1 = (time.time() - self.t0)* 1000
+            print '<s ', t1, str(msg)
+            self.t0 = time.time()
+            
         send_sm(self.sock, msg)
 
 
     def recv(self):
         msg = recv_sm(self.sock)
         if self.deb:
-            print 'c> ', str(msg)
+            t1 = (time.time() - self.t0)* 1000
+            print 'r> ', t1, str(msg)
+            self.t0 = time.time()
+            #print 'c> ', str(msg)
         return msg
         
         
@@ -243,7 +255,7 @@ class SmsTcpClient:
 
         #msg = q.get()
         #print 'wFalse'
-        #waiting = False
+        waiting = False
     
         msg = self.recv()
         if msg == '':
