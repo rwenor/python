@@ -85,7 +85,6 @@ def main():
     #showStartScreen()
     while True:
         runGame()
-        showGameOverScreen()
 
 def senterPos(m_pos):            
     mx = (m_pos[0] - WINDOWWIDTH/2)
@@ -109,24 +108,41 @@ def compSpd(m_pos):
         dspd = 0
             
     return aspd, dspd
-  
+
+
+def drawTemp(i, servName, temp):
+    scoreSurf = BASICFONT.render('%s: %s' % (servName, temp), True, WHITE)
+    scoreRect = scoreSurf.get_rect()
+    scoreRect.topleft = (WINDOWWIDTH - 220, 10 + i*20)
+    DISPLAYSURF.blit(scoreSurf, scoreRect)  
   
 class ShowList(object):
     
-    def __init__(self, x, y, ant):
+    def __init__(self, x, y, maxItem):
         self.data = []
         self.x = x
         self.y = y
+        self.maxItem = maxItem
         
     def clr(self):
-        data = []
+        self.data = []
           
     def drawLine(self, i, line):
-        scoreSurf = BASICFONT.render('%d: %s' % (i, line), True, WHITE)
+        scoreSurf = BASICFONT.render('%s: %s' % (str(i), line), True, WHITE)
         scoreRect = scoreSurf.get_rect()
-        scoreRect.topleft = (WINDOWWIDTH - 220, 10 + i*20)
-        DISPLAYSURF.blit(scoreSurf, scoreRect)    
+        scoreRect.topleft = (self.x, self.y + i*20)
+        DISPLAYSURF.blit(scoreSurf, scoreRect)   
+        #print i, line 
     
+    def add(self, line):
+        self.data.append(line)
+        if len(self.data) > self.maxItem:
+            self.data.pop(0)
+    
+    def draw(self):
+        for i, line in enumerate(self.data):
+            self.drawLine(i, line)
+            
     
 class PingGrf(object):
 
@@ -196,8 +212,11 @@ def runGame():
     m_pos = (-1,-1)
     m_pos_last = (-1,-1)
     m_down = None
+    
     pingGrf = PingGrf('Ping', 100)
     pingGrf.make()
+    sList = ShowList(10, 200, 10)
+    
     
     img=pygame.image.load('test.jpg')
     
@@ -205,6 +224,10 @@ def runGame():
 
     while True: # main game loop
         loopCnt += 1
+        
+        #sList.add(str(loopCnt))
+        #if loopCnt % 10 == 0:
+        #    sList.clr()
         
         while cli.disp_sms(Disp_sm_gui) == True:
             pass
@@ -328,6 +351,7 @@ def runGame():
             print 'ping: ', td, 'ms'
             
             pingGrf.make()
+            
         
         #DISPLAYSURF.fill(BGCOLOR)
         DISPLAYSURF.blit(img,(0,0))
@@ -340,16 +364,18 @@ def runGame():
         drawTemp(2, "GoPi Temp", serv_temp2)
         drawTemp(3, "GoPi Volt", gopi_volt)
         
+        sList.draw()
+        
         pingGrf.draw()
         pygame.display.update()
         FPSCLOCK.tick(FPS)
+
 
 def drawPressKeyMsg():
     pressKeySurf = BASICFONT.render('Press a key to play.', True, DARKGRAY)
     pressKeyRect = pressKeySurf.get_rect()
     pressKeyRect.topleft = (WINDOWWIDTH - 200, WINDOWHEIGHT - 30)
     DISPLAYSURF.blit(pressKeySurf, pressKeyRect)
-
 
 
 # KRT 14/06/2012 rewrite event detection to deal with mouse use
@@ -366,51 +392,6 @@ def checkForKeyPress():
     return None
 
     
-def showStartScreen():
-    global cli
-    titleFont = pygame.font.Font('freesansbold.ttf', 100)
-    titleSurf1 = titleFont.render('GoPiGo!', True, WHITE, DARKGREEN)
-    titleSurf2 = titleFont.render('GoPiGo!', True, GREEN)
-
-    degrees1 = 0
-    degrees2 = 0
-    
-#KRT 14/06/2012 rewrite event detection to deal with mouse use
-    pygame.event.get()  #clear out event queue
-    FPS = 10
-
-    # Conect to server
-    #cli = SmsTcpClient( "cli", '127.0.0.1', 9999)
-    
-    cli = SmsTcpClient( "gui", '192.168.1.166', 9999)
-    rpc = SmsTcpClient( "gui-rpc", '192.168.1.166', 9999)
-
-    #print "## RegName: " + cli.sm_func(cli.name, 'Serv.RegName', cli.name)
-    #print "## CpuTemp: " + cli.sm_func(cli.name, 'Serv.CpuTemp', '.')
-    
-    t0 = time.time()
-    while time.time() - t0 < 0.1:
-        DISPLAYSURF.fill(BGCOLOR)
-        rotatedSurf1 = pygame.transform.rotate(titleSurf1, degrees1)
-        rotatedRect1 = rotatedSurf1.get_rect()
-        rotatedRect1.center = (WINDOWWIDTH / 2, WINDOWHEIGHT / 2)
-        DISPLAYSURF.blit(rotatedSurf1, rotatedRect1)
-
-        rotatedSurf2 = pygame.transform.rotate(titleSurf2, degrees2)
-        rotatedRect2 = rotatedSurf2.get_rect()
-        rotatedRect2.center = (WINDOWWIDTH / 2, WINDOWHEIGHT / 2)
-        DISPLAYSURF.blit(rotatedSurf2, rotatedRect2)
-
-        drawPressKeyMsg()
-#KRT 14/06/2012 rewrite event detection to deal with mouse use
-        if checkForKeyPress():
-            return
-        pygame.display.update()
-        FPSCLOCK.tick(FPS)
-        degrees1 += 3 # rotate by 3 degrees each frame
-        degrees2 += 7 # rotate by 7 degrees each frame
-
-
 def terminate():
     global cli, rpc
     
@@ -428,39 +409,12 @@ def getRandomLocation():
     #{'x': random.randint(0, CELLWIDTH - 1), 'y': random.randint(0, CELLHEIGHT - 1)}
 
 
-def showGameOverScreen():
-    gameOverFont = pygame.font.Font('freesansbold.ttf', 150)
-    gameSurf = gameOverFont.render('Game', True, WHITE)
-    overSurf = gameOverFont.render('Over', True, WHITE)
-    gameRect = gameSurf.get_rect()
-    overRect = overSurf.get_rect()
-    gameRect.midtop = (WINDOWWIDTH / 2, 10)
-    overRect.midtop = (WINDOWWIDTH / 2, gameRect.height + 10 + 25)
-
-    DISPLAYSURF.blit(gameSurf, gameRect)
-    DISPLAYSURF.blit(overSurf, overRect)
-    drawPressKeyMsg()
-    pygame.display.update()
-    pygame.time.wait(500)
-#KRT 14/06/2012 rewrite event detection to deal with mouse use
-    pygame.event.get()  #clear out event queue 
-    while True:
-        if checkForKeyPress():
-            return
-#KRT 12/06/2012 reduce processor loading in gameover screen.
-        pygame.time.wait(100)
-
 def drawScore(score):
     scoreSurf = BASICFONT.render('Score: %s' % (score), True, WHITE)
     scoreRect = scoreSurf.get_rect()
     scoreRect.topleft = (WINDOWWIDTH - 120, 10)
     DISPLAYSURF.blit(scoreSurf, scoreRect)
 
-def drawTemp(i, servName, temp):
-    scoreSurf = BASICFONT.render('%s: %s' % (servName, temp), True, WHITE)
-    scoreRect = scoreSurf.get_rect()
-    scoreRect.topleft = (WINDOWWIDTH - 220, 10 + i*20)
-    DISPLAYSURF.blit(scoreSurf, scoreRect)
 
 def drawWorm(wormCoords):
     for coord in wormCoords:
