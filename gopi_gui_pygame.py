@@ -71,15 +71,18 @@ def Disp_sm_gui(fra, til, data, con):
     
     
 def main():
-    global FPSCLOCK, DISPLAYSURF, BASICFONT
+    global FPSCLOCK, DISPLAYSURF, BASICFONT, cli, rpc
 
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
     pygame.display.set_caption('GoPiGo - Gui')
+    
+    cli = SmsTcpClient( "gui", '192.168.1.166', 9999)
+    rpc = SmsTcpClient( "gui-rpc", '192.168.1.166', 9999)
 
-    showStartScreen()
+    #showStartScreen()
     while True:
         runGame()
         showGameOverScreen()
@@ -106,6 +109,23 @@ def compSpd(m_pos):
         dspd = 0
             
     return aspd, dspd
+  
+  
+class ShowList(object):
+    
+    def __init__(self, x, y, ant):
+        self.data = []
+        self.x = x
+        self.y = y
+        
+    def clr(self):
+        data = []
+          
+    def drawLine(self, i, line):
+        scoreSurf = BASICFONT.render('%d: %s' % (i, line), True, WHITE)
+        scoreRect = scoreSurf.get_rect()
+        scoreRect.topleft = (WINDOWWIDTH - 220, 10 + i*20)
+        DISPLAYSURF.blit(scoreSurf, scoreRect)    
     
     
 class PingGrf(object):
@@ -120,20 +140,22 @@ class PingGrf(object):
         for i in xrange(0, size):
             self.data1.append( sin(i*90) )
             self.data2.append( sin(i*90) )
-
+            
+        self.fig = pylab.figure(figsize=[3, 1.5], # Inches
+                   dpi=100,   )
+        self.ax = self.fig.gca()
 
     def draw(self):
         DISPLAYSURF.blit(self.surf, (0,0))
 
         
     def make(self):
-        fig = pylab.figure(figsize=[3, 1.5], # Inches
-                   dpi=100,   )
-        ax = fig.gca()
-        ax.plot(self.data1)
-        ax.plot(self.data2)
+
+        self.ax.clear()
+        self.ax.plot(self.data1)
+        self.ax.plot(self.data2)
          
-        canvas = agg.FigureCanvasAgg(fig)
+        canvas = agg.FigureCanvasAgg(self.fig)
         canvas.draw()
         renderer = canvas.get_renderer()
         raw_data = renderer.tostring_rgb() 
@@ -153,6 +175,7 @@ class PingGrf(object):
         print int(val)
         self.data2 = self.data2[1:] + [int(val)]
         #self.make()
+
 
             
 def runGame():
@@ -286,17 +309,19 @@ def runGame():
             print 'go: ', loopCnt, aspd, dspd
     
     
-        if loopCnt % (FPS*10) == 0: 
+    
+    
+        if loopCnt % (FPS*1) == 0: 
             
             t0 = pygame.time.get_ticks() #time.time()                
-            cli.sm_func(cli.name, 'GoPiGo.ping', '.')
+            rpc.sm_rpc('GoPiGo.ping', '.')
             td = (pygame.time.get_ticks() - t0)
             pingGrf.addData1(td)
             #time.sleep(0.1)
             print 'ping: ', td, 'ms'
             
             t0 = pygame.time.get_ticks() #time.time()                
-            cli.sm_func(cli.name, 'Serv.ping', '.')
+            rpc.sm_rpc('Serv.ping', '.')
             td = (pygame.time.get_ticks() - t0)
             pingGrf.addData2(td)
             #time.sleep(0.1)
@@ -356,9 +381,12 @@ def showStartScreen():
 
     # Conect to server
     #cli = SmsTcpClient( "cli", '127.0.0.1', 9999)
+    
     cli = SmsTcpClient( "gui", '192.168.1.166', 9999)
-    print "## RegName: " + cli.sm_func(cli.name, 'Serv.RegName', cli.name)
-    print "## CpuTemp: " + cli.sm_func(cli.name, 'Serv.CpuTemp', '.')
+    rpc = SmsTcpClient( "gui-rpc", '192.168.1.166', 9999)
+
+    #print "## RegName: " + cli.sm_func(cli.name, 'Serv.RegName', cli.name)
+    #print "## CpuTemp: " + cli.sm_func(cli.name, 'Serv.CpuTemp', '.')
     
     t0 = time.time()
     while time.time() - t0 < 0.1:
@@ -384,8 +412,12 @@ def showStartScreen():
 
 
 def terminate():
-    global cli
-    cli.sm_func(cli.name, 'Serv.UnRegName', cli.name)
+    global cli, rpc
+    
+    cli.close()
+    rpc.close()
+    
+    #cli.sm_func(cli.name, 'Serv.UnRegName', cli.name)
     
     pygame.quit()
     sys.exit()

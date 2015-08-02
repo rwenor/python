@@ -200,10 +200,12 @@ class SmsTcpClient:
         self.waiting = None
         #self.disp_sm = Disp_sm_pi
         self.t0 = time.time()
+        self.sm_func(self.name, 'Serv.RegName', self.name)
 
 
     def close(self):
-        self.sock.close();
+        self.sm_func(self.name, 'Serv.UnRegName', self.name)
+        self.sock.close()
 
         
     def send(self, msg):
@@ -237,6 +239,38 @@ class SmsTcpClient:
         return msg
         
         
+    def sm_rpc(self, til, data):
+        #global waiting
+        #global q
+        
+        # Send data
+        fra = self.name + '.' + 'rpc'
+        msg = fra + '\t' + til + '\t' + data + '\t#'
+        #print >>sys.stderr, 'X-sending "%s"' % msg
+    
+        #PTD("Send")
+        self.waitingMsg = fra + '\t' + til
+        self.send(msg)
+        #PTD("End")
+    
+        # Look for the response
+        #get_data()
+
+        #msg = q.get()
+        #print 'wFalse'
+        waiting = False
+    
+        msg = self.recv()
+        if msg == '':
+            return 'Abort'
+
+    
+        #PTD("Reseved")
+        l = msg.strip().split('\t')
+  
+        return l[2]
+
+
     def sm_func(self, fra, til, data):
         #global waiting
         #global q
