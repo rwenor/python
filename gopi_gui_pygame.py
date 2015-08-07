@@ -46,28 +46,6 @@ serv_temp = 0
 serv_temp2 = 1
 gopi_volt = ''
 gopi_fwd = None
-
-
-def Disp_sm_gui(fra, til, data, con):
-    global serv_temp, serv_temp2, gopi_volt
-    
-    rdata = None
-    #print fra, til, data
-    if til[0] == 'STemp':
-        serv_temp = data
-    elif til[0] == 'STemp2':
-        serv_temp2 = data
-    elif til[0] == 'GVolt':
-        gopi_volt = data
-    elif til[0] == 'ping':
-        #conDict[data] = sms_client(data, '', con)
-        rdata = 'ACK'
-        print conDict
-    else:
-        #print 'DISP_SM'
-        rdata = Disp_sm_pi(fra, til, data, con)
-            
-    return rdata
     
     
 def main():
@@ -79,8 +57,10 @@ def main():
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
     pygame.display.set_caption('GoPiGo - Gui')
     
-    cli = SmsTcpClient( "gui", '192.168.1.166', 9999)
-    rpc = SmsTcpClient( "gui-rpc", '192.168.1.166', 9999)
+    ipAddr = '109.247.27.11'
+    #ipAddr = 192.168.1.166'
+    cli = SmsTcpClient( "gui", ipAddr, 9999)
+    rpc = SmsTcpClient( "gui-rpc", ipAddr, 9999)
 
     #showStartScreen()
     while True:
@@ -182,17 +162,63 @@ class PingGrf(object):
         
     def addData1(self, val):
         
-        print int(val)
+        #print int(val)
         self.data1 = self.data1[1:] + [int(val)]
         #self.make()
 
     def addData2(self, val):
         
-        print int(val)
+        #print int(val)
         self.data2 = self.data2[1:] + [int(val)]
         #self.make()
 
+def Disp_sm_gui(fra, til, data, con):
+    global serv_temp, serv_temp2, gopi_volt, sList
+    
+    rdata = None
+    #print fra, til, data
+    if til[0] == 'STemp':
+        serv_temp = data
+    elif til[0] == 'STemp2':
+        serv_temp2 = data
+    elif til[0] == 'GVolt':
+        gopi_volt = data
+    elif til[0] == 'sList':
+        sList.add(data)
+    elif til[0] == 'ping':
+        #conDict[data] = sms_client(data, '', con)
+        rdata = 'ACK'
+        print conDict
+    else:
+        #print 'DISP_SM'
+        rdata = Disp_sm_pi(fra, til, data, con)
+            
+    return rdata
+    
 
+class TM(object):
+    def __init__(self, name = None):
+        self.t0 = time.time()
+        self.name = name
+        if self.name == None:
+            self.name = 'TM'
+           
+    def __enter__(self):
+        self.t0 = time.time()
+        return self
+        
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.prt()
+            
+    def prt(self):
+        print self.name, ': ', (time.time() - self.t0)*1000
+        self.t0 = time.time()
+        
+    def start(self):
+        self.t0 = time.time()
+        
+       
+sList = ShowList(10, 200, 10)
             
 def runGame():
     global serv_temp, serv_temp2, gopi_volt, gopi_fwd
@@ -215,8 +241,6 @@ def runGame():
     
     pingGrf = PingGrf('Ping', 100)
     pingGrf.make()
-    sList = ShowList(10, 200, 10)
-    
     
     img=pygame.image.load('test.jpg')
     
@@ -252,15 +276,17 @@ def runGame():
                     t0 = time.time()
                     cli.sm_func(cli.name, 'GoPiGo.ping', '.')
                     time.sleep(0.1)
-                    print 'ping: ', (time.time() - t0)*100, 'ms' 
+                    #print 'ping: ', (time.time() - t0)*100, 'ms' 
                 elif (event.key == K_o):
                     #cli.sendSM('GVolt', 'GoPiGo.ping', '.')
                     t0 = time.time()
                     cli.sm_func(cli.name, 'Serv.ping', '.')
                     pingGrf.addData((time.time() - t0)*100)
                     #time.sleep(0.1)
-                    print 'ping: ', (time.time() - t0)*100, 'ms' 
+                    #print 'ping: ', (time.time() - t0)*100, 'ms' 
 
+                elif (event.key == K_l):
+                    cli.sendSM('sList', 'Serv.ListCli', '.')
                 elif (event.key == K_g):
                     cli.sendSM('GVolt', 'GoPiGo.cmd.g', '.')
                 elif (event.key == K_e):
@@ -341,18 +367,19 @@ def runGame():
             td = (pygame.time.get_ticks() - t0)
             pingGrf.addData1(td)
             #time.sleep(0.1)
-            print 'ping: ', td, 'ms'
+            #print 'ping: ', td, 'ms'
             
             t0 = pygame.time.get_ticks() #time.time()                
             rpc.sm_rpc('Serv.ping', '.')
             td = (pygame.time.get_ticks() - t0)
             pingGrf.addData2(td)
             #time.sleep(0.1)
-            print 'ping: ', td, 'ms'
+            #print 'ping: ', td, 'ms'
             
+#            with TM('make') as tm:
             pingGrf.make()
             
-        
+#        with TM('draw') as tm:
         #DISPLAYSURF.fill(BGCOLOR)
         DISPLAYSURF.blit(img,(0,0))
         drawGrid()
@@ -367,6 +394,7 @@ def runGame():
         sList.draw()
         
         pingGrf.draw()
+            
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 

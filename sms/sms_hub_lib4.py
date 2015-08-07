@@ -212,7 +212,7 @@ class SmsTcpClient:
         
         if self.deb:
             t1 = (time.time() - self.t0)* 1000
-            print '<c ', t1, str(msg)
+            print '<c ', "{:10.4f}".format(t1), str(msg)
             self.t0 = time.time()
             
         send_sm(self.sock, msg)
@@ -233,7 +233,7 @@ class SmsTcpClient:
         msg = recv_sm(self.sock)
         if self.deb:
             t1 = (time.time() - self.t0)* 1000
-            print 'r> ', t1, str(msg)
+            print 'r> ', "{:10.4f}".format(t1), str(msg)
             self.t0 = time.time()
             #print 'c> ', str(msg)
         return msg
