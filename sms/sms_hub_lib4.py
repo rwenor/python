@@ -215,32 +215,78 @@ class SmsTcpClient:
         self.deb = True
         self.waiting = None
         #self.disp_sm = Disp_sm_pi
+        self.t0 = time.time()
+        self.sm_func(self.name, 'Serv.RegName', self.name)
 
 
     def close(self):
-        self.sock.close();
+        self.sm_func(self.name, 'Serv.UnRegName', self.name)
+        self.sock.close()
 
         
     def send(self, msg):
+        
         if self.deb:
-            print '<c ', str(msg)
+            t1 = (time.time() - self.t0)* 1000
+            print '<c ', "{:10.4f}".format(t1), str(msg)
+            self.t0 = time.time()
+            
         send_sm(self.sock, msg)
             
 
     def sendSM(self, fra, til, msg):
         msg = self.name + '.' + fra + '\t' + til + '\t' + msg
         if self.deb:
-            print '<c ', str(msg)
+            #print '<c ', str(msg)
+            t1 = (time.time() - self.t0)* 1000
+            print '<s ', t1, str(msg)
+            self.t0 = time.time()
+            
         send_sm(self.sock, msg)
 
 
     def recv(self):
         msg = recv_sm(self.sock)
         if self.deb:
-            print 'c> ', str(msg)
+            t1 = (time.time() - self.t0)* 1000
+            print 'r> ', "{:10.4f}".format(t1), str(msg)
+            self.t0 = time.time()
+            #print 'c> ', str(msg)
         return msg
         
         
+    def sm_rpc(self, til, data):
+        #global waiting
+        #global q
+        
+        # Send data
+        fra = self.name + '.' + 'rpc'
+        msg = fra + '\t' + til + '\t' + data + '\t#'
+        #print >>sys.stderr, 'X-sending "%s"' % msg
+    
+        #PTD("Send")
+        self.waitingMsg = fra + '\t' + til
+        self.send(msg)
+        #PTD("End")
+    
+        # Look for the response
+        #get_data()
+
+        #msg = q.get()
+        #print 'wFalse'
+        waiting = False
+    
+        msg = self.recv()
+        if msg == '':
+            return 'Abort'
+
+    
+        #PTD("Reseved")
+        l = msg.strip().split('\t')
+  
+        return l[2]
+
+
     def sm_func(self, fra, til, data):
         #global waiting
         #global q
@@ -259,7 +305,7 @@ class SmsTcpClient:
 
         #msg = q.get()
         #print 'wFalse'
-        #waiting = False
+        waiting = False
     
         msg = self.recv()
         if msg == '':
@@ -314,9 +360,9 @@ class SmsTcpClient:
         print 'get_data ut2'
 
 
-    def disp_sms(self, disp_func):   
+    def disp_sms(self, disp_func, timeout = 0):   
         
-        inputready,outputready,exceptready = select.select([self.sock],[],[],0)
+        inputready,outputready,exceptready = select.select([self.sock],[],[],timeout)
 
         #print inputready
   
@@ -324,15 +370,15 @@ class SmsTcpClient:
         for src in inputready:  
             if src == self.sock: 
                 amount_received = 0
-                print 'recv'
+                #print 'recv'
                 msg = self.recv()
-                print 'get_data -> ' + str(msg)
+                #print 'get_data -> ' + str(msg)
                 if msg:
                 
                     l = msg.strip().split('\t')
                 
                     til = l[1].split('.')
-                    print til
+                    #print til
                 
                     if til[-1] == 'Quit':
                         print 'break'
@@ -345,7 +391,7 @@ class SmsTcpClient:
                 
                 amount_received += len(msg)
                 #print >>sys.stderr, 'received "%s"' % data
-                print 'w: ' + str(self.waiting) + '-' + l[1] + '\t' + l[0]
+                #print 'w: ' + str(self.waiting) + '-' + l[1] + '\t' + l[0]
                 if self.waiting == l[1] + '\t' + l[0]:
                     q.put(msg)
                 else:

@@ -1,0 +1,2 @@
+nc -l 9999 | mplayer  -fps 24 -cache 512 -
+
