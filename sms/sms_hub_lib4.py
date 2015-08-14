@@ -30,7 +30,7 @@ def recv_sm(con):
     return con.recv(l)
     
 
-def Disp_sm_serv(fra, til, data, con):
+def Disp_sm_serv(fra, til, data, con, serv):
 
     if til[0] == 'UnRegName':
         del conDict[data]
@@ -44,6 +44,14 @@ def Disp_sm_serv(fra, til, data, con):
         #conDict[data] = sms_client(data, '', con)
         data = 'ACK'
         print conDict
+    elif til[0] == 'ListCli':
+        print conDict
+        #conDict[data] = sms_client(data, '', con)
+        data = None
+        for k, v in conDict.items():
+            serv.sendSM(til, fra, k) 
+            
+            
     else:
         #print 'DISP_SM'
         data = Disp_sm_pi(fra, til, data, con)
@@ -51,7 +59,7 @@ def Disp_sm_serv(fra, til, data, con):
     return data
     
     
-def Disp_sm_hub(fra, til, data, con):
+def Disp_sm_hub(fra, til, data, con, serv = None):
 
     #print '***DISP:'
     tlist = til.split('.')
@@ -60,7 +68,7 @@ def Disp_sm_hub(fra, til, data, con):
     #print 'YYYYYY'
     if to == servName:
         print '*S'
-        data = Disp_sm_serv(fra, tlist, data, con)
+        data = Disp_sm_serv(fra, tlist, data, con, serv)
         
     elif to in conDict:
         print '*H'
@@ -105,6 +113,7 @@ class SmsTcpServer:
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         #self.sock.settimeout(10)
         self.sock.bind(self.addr)
+        self.deb = True
         
         
     def close(self):
@@ -117,6 +126,13 @@ class SmsTcpServer:
     def Xsendall(self, msg):
         print 'xxxSending ""' + msg
 
+
+    def sendSM(self, fra, til, msg):
+        #msg = self.name + '.' + '.'.join(fra) + '\t' + til + '\t' + msg
+        if self.deb:
+            print '<dx ', str(msg)
+        Disp_sm_hub(self.name + '.' + '.'.join(fra), til, msg, None)
+        
 
     def con_recv_hub(self, con, addr):
         try:
@@ -141,7 +157,7 @@ class SmsTcpServer:
                             continue
                     
                     else:
-                        l[2] = Disp_sm_hub(l[0], l[1], l[2], con)
+                        l[2] = Disp_sm_hub(l[0], l[1], l[2], con, self)
 
                     #print >>sys.stderr, 'sending data back to the client'
                     if l[2] <> None:
@@ -360,7 +376,7 @@ if __name__ == '__main__':
 
       def xtest_Disp(self):
           print '\nRegName sm_hub'
-          data = Disp_sm_hub('Test.Fra 1', 'Serv.RegName', 'Fra 1', test_con('Fra 1', '1.2.3.4', 1))
+          data = Disp_sm_hub('Test.Fra 1', 'Serv.ping', 'Fra 1', None)
           self.assertEqual(data, 'ACK')
           print conDict
 
@@ -390,7 +406,7 @@ if __name__ == '__main__':
               
           #self.assertEqual(sm_wait['test'], None)
           
-      def test_server_client(self):
+      def xtest_server_client(self):
           serv = SmsTcpServer("Serv", '', 9999)
           t = threading.Thread(target = serv.run_server, args = ())
           t.start()
@@ -419,6 +435,33 @@ if __name__ == '__main__':
           #self.assertEqual('test1', msg)
           
         
+      def xtest_server_client(self):
+          serv = SmsTcpServer("Serv-test", '', 9999)
+          t = threading.Thread(target = serv.run_server, args = ())
+          t.start()
+          
+          time.sleep(1)
+          
+          serv.running = False  # Stop server etter dette 
+          cli =  SmsTcpClient( "cli-test", '127.0.0.1', 9999)   
+          time.sleep(1)
+          
+          cli.sendSM('test', 'Serv.ListCli', '.')
+          msg = cli.recv()
+          print '-> ' + msg
+          
+          print "## Quit: " + cli.sm_func(cli.name, cli.name + '.Quit', cli.name) 
+           
+          self.assertEqual('BYE', cli.sm_func(cli.name, 'Serv.UnRegName', cli.name) )
+          
+          #cleanup_stop_thread();
+          
+          #cli.sendall('') # Stop server thread 
+          cli.close()
+          serv.close()
+          #self.assertEqual('test1', msg)
+
+
     print 3*'\n'
     print 70*'*'
     print 'Test: '
