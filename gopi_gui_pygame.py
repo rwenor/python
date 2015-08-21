@@ -356,7 +356,7 @@ def showStartScreen():
 
     # Conect to server
     #cli = SmsTcpClient( "cli", '127.0.0.1', 9999)
-    cli = SmsTcpClient( "gui", '192.168.1.166', 9999)
+    cli = SmsTcpClient( "gui2", '192.168.1.166', 9999)
     print "## RegName: " + cli.sm_func(cli.name, 'Serv.RegName', cli.name)
     print "## CpuTemp: " + cli.sm_func(cli.name, 'Serv.CpuTemp', '.')
     
