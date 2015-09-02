@@ -59,8 +59,8 @@ def main():
     
     ipAddr = '109.247.27.11'
     #ipAddr = 192.168.1.166'
-    cli = SmsTcpClient( "gui", ipAddr, 9999)
-    rpc = SmsTcpClient( "gui-rpc", ipAddr, 9999)
+    cli = SmsTcpClient( "gui", ipAddr, 9999, False)
+    rpc = SmsTcpClient( "gui-rpc", ipAddr, 9999, False)
 
     #showStartScreen()
     while True:
@@ -117,7 +117,7 @@ class ShowList(object):
     def add(self, line):
         self.data.append(line)
         if len(self.data) > self.maxItem:
-            self.data.pop(0)
+            self.data.pp(0)
     
     def draw(self):
         for i, line in enumerate(self.data):
