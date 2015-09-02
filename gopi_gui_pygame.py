@@ -46,43 +46,25 @@ serv_temp = 0
 serv_temp2 = 1
 gopi_volt = ''
 gopi_fwd = None
-
-
-def Disp_sm_gui(fra, til, data, con):
-    global serv_temp, serv_temp2, gopi_volt
-    
-    rdata = None
-    #print fra, til, data
-    if til[0] == 'STemp':
-        serv_temp = data
-    elif til[0] == 'STemp2':
-        serv_temp2 = data
-    elif til[0] == 'GVolt':
-        gopi_volt = data
-    elif til[0] == 'ping':
-        #conDict[data] = sms_client(data, '', con)
-        rdata = 'ACK'
-        print conDict
-    else:
-        #print 'DISP_SM'
-        rdata = Disp_sm_pi(fra, til, data, con)
-            
-    return rdata
     
     
 def main():
-    global FPSCLOCK, DISPLAYSURF, BASICFONT
+    global FPSCLOCK, DISPLAYSURF, BASICFONT, cli, rpc
 
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
     pygame.display.set_caption('GoPiGo - Gui')
+    
+    ipAddr = '109.247.27.11'
+    #ipAddr = 192.168.1.166'
+    cli = SmsTcpClient( "gui", ipAddr, 9999)
+    rpc = SmsTcpClient( "gui-rpc", ipAddr, 9999)
 
-    showStartScreen()
+    #showStartScreen()
     while True:
         runGame()
-        showGameOverScreen()
 
 def senterPos(m_pos):            
     mx = (m_pos[0] - WINDOWWIDTH/2)
@@ -106,7 +88,41 @@ def compSpd(m_pos):
         dspd = 0
             
     return aspd, dspd
+
+
+def drawTemp(i, servName, temp):
+    scoreSurf = BASICFONT.render('%s: %s' % (servName, temp), True, WHITE)
+    scoreRect = scoreSurf.get_rect()
+    scoreRect.topleft = (WINDOWWIDTH - 220, 10 + i*20)
+    DISPLAYSURF.blit(scoreSurf, scoreRect)  
+  
+class ShowList(object):
     
+    def __init__(self, x, y, maxItem):
+        self.data = []
+        self.x = x
+        self.y = y
+        self.maxItem = maxItem
+        
+    def clr(self):
+        self.data = []
+          
+    def drawLine(self, i, line):
+        scoreSurf = BASICFONT.render('%s: %s' % (str(i), line), True, WHITE)
+        scoreRect = scoreSurf.get_rect()
+        scoreRect.topleft = (self.x, self.y + i*20)
+        DISPLAYSURF.blit(scoreSurf, scoreRect)   
+        #print i, line 
+    
+    def add(self, line):
+        self.data.append(line)
+        if len(self.data) > self.maxItem:
+            self.data.pop(0)
+    
+    def draw(self):
+        for i, line in enumerate(self.data):
+            self.drawLine(i, line)
+            
     
 class PingGrf(object):
 
@@ -120,20 +136,22 @@ class PingGrf(object):
         for i in xrange(0, size):
             self.data1.append( sin(i*90) )
             self.data2.append( sin(i*90) )
-
+            
+        self.fig = pylab.figure(figsize=[3, 1.5], # Inches
+                   dpi=100,   )
+        self.ax = self.fig.gca()
 
     def draw(self):
         DISPLAYSURF.blit(self.surf, (0,0))
 
         
     def make(self):
-        fig = pylab.figure(figsize=[3, 1.5], # Inches
-                   dpi=100,   )
-        ax = fig.gca()
-        ax.plot(self.data1)
-        ax.plot(self.data2)
+
+        self.ax.clear()
+        self.ax.plot(self.data1)
+        self.ax.plot(self.data2)
          
-        canvas = agg.FigureCanvasAgg(fig)
+        canvas = agg.FigureCanvasAgg(self.fig)
         canvas.draw()
         renderer = canvas.get_renderer()
         raw_data = renderer.tostring_rgb() 
@@ -144,16 +162,63 @@ class PingGrf(object):
         
     def addData1(self, val):
         
-        print int(val)
+        #print int(val)
         self.data1 = self.data1[1:] + [int(val)]
         #self.make()
 
     def addData2(self, val):
         
-        print int(val)
+        #print int(val)
         self.data2 = self.data2[1:] + [int(val)]
         #self.make()
 
+def Disp_sm_gui(fra, til, data, con):
+    global serv_temp, serv_temp2, gopi_volt, sList
+    
+    rdata = None
+    #print fra, til, data
+    if til[0] == 'STemp':
+        serv_temp = data
+    elif til[0] == 'STemp2':
+        serv_temp2 = data
+    elif til[0] == 'GVolt':
+        gopi_volt = data
+    elif til[0] == 'sList':
+        sList.add(data)
+    elif til[0] == 'ping':
+        #conDict[data] = sms_client(data, '', con)
+        rdata = 'ACK'
+        print conDict
+    else:
+        #print 'DISP_SM'
+        rdata = Disp_sm_pi(fra, til, data, con)
+            
+    return rdata
+    
+
+class TM(object):
+    def __init__(self, name = None):
+        self.t0 = time.time()
+        self.name = name
+        if self.name == None:
+            self.name = 'TM'
+           
+    def __enter__(self):
+        self.t0 = time.time()
+        return self
+        
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.prt()
+            
+    def prt(self):
+        print self.name, ': ', (time.time() - self.t0)*1000
+        self.t0 = time.time()
+        
+    def start(self):
+        self.t0 = time.time()
+        
+       
+sList = ShowList(10, 200, 10)
             
 def runGame():
     global serv_temp, serv_temp2, gopi_volt, gopi_fwd
@@ -173,6 +238,7 @@ def runGame():
     m_pos = (-1,-1)
     m_pos_last = (-1,-1)
     m_down = None
+    
     pingGrf = PingGrf('Ping', 100)
     pingGrf.make()
     
@@ -182,6 +248,10 @@ def runGame():
 
     while True: # main game loop
         loopCnt += 1
+        
+        #sList.add(str(loopCnt))
+        #if loopCnt % 10 == 0:
+        #    sList.clr()
         
         while cli.disp_sms(Disp_sm_gui) == True:
             pass
@@ -206,15 +276,17 @@ def runGame():
                     t0 = time.time()
                     cli.sm_func(cli.name, 'GoPiGo.ping', '.')
                     time.sleep(0.1)
-                    print 'ping: ', (time.time() - t0)*100, 'ms' 
+                    #print 'ping: ', (time.time() - t0)*100, 'ms' 
                 elif (event.key == K_o):
                     #cli.sendSM('GVolt', 'GoPiGo.ping', '.')
                     t0 = time.time()
                     cli.sm_func(cli.name, 'Serv.ping', '.')
                     pingGrf.addData((time.time() - t0)*100)
                     #time.sleep(0.1)
-                    print 'ping: ', (time.time() - t0)*100, 'ms' 
+                    #print 'ping: ', (time.time() - t0)*100, 'ms' 
 
+                elif (event.key == K_l):
+                    cli.sendSM('sList', 'Serv.ListCli', '.')
                 elif (event.key == K_g):
                     cli.sendSM('GVolt', 'GoPiGo.cmd.g', '.')
                 elif (event.key == K_e):
@@ -286,24 +358,28 @@ def runGame():
             print 'go: ', loopCnt, aspd, dspd
     
     
-        if loopCnt % (FPS*10) == 0: 
+    
+    
+        if loopCnt % (FPS*1) == 0: 
             
             t0 = pygame.time.get_ticks() #time.time()                
-            cli.sm_func(cli.name, 'GoPiGo.ping', '.')
+            rpc.sm_rpc('GoPiGo.ping', '.')
             td = (pygame.time.get_ticks() - t0)
             pingGrf.addData1(td)
             #time.sleep(0.1)
-            print 'ping: ', td, 'ms'
+            #print 'ping: ', td, 'ms'
             
             t0 = pygame.time.get_ticks() #time.time()                
-            cli.sm_func(cli.name, 'Serv.ping', '.')
+            rpc.sm_rpc('Serv.ping', '.')
             td = (pygame.time.get_ticks() - t0)
             pingGrf.addData2(td)
             #time.sleep(0.1)
-            print 'ping: ', td, 'ms'
+            #print 'ping: ', td, 'ms'
             
+#            with TM('make') as tm:
             pingGrf.make()
-        
+            
+#        with TM('draw') as tm:
         #DISPLAYSURF.fill(BGCOLOR)
         DISPLAYSURF.blit(img,(0,0))
         drawGrid()
@@ -315,16 +391,19 @@ def runGame():
         drawTemp(2, "GoPi Temp", serv_temp2)
         drawTemp(3, "GoPi Volt", gopi_volt)
         
+        sList.draw()
+        
         pingGrf.draw()
+            
         pygame.display.update()
         FPSCLOCK.tick(FPS)
+
 
 def drawPressKeyMsg():
     pressKeySurf = BASICFONT.render('Press a key to play.', True, DARKGRAY)
     pressKeyRect = pressKeySurf.get_rect()
     pressKeyRect.topleft = (WINDOWWIDTH - 200, WINDOWHEIGHT - 30)
     DISPLAYSURF.blit(pressKeySurf, pressKeyRect)
-
 
 
 # KRT 14/06/2012 rewrite event detection to deal with mouse use
@@ -341,51 +420,13 @@ def checkForKeyPress():
     return None
 
     
-def showStartScreen():
-    global cli
-    titleFont = pygame.font.Font('freesansbold.ttf', 100)
-    titleSurf1 = titleFont.render('GoPiGo!', True, WHITE, DARKGREEN)
-    titleSurf2 = titleFont.render('GoPiGo!', True, GREEN)
-
-    degrees1 = 0
-    degrees2 = 0
-    
-#KRT 14/06/2012 rewrite event detection to deal with mouse use
-    pygame.event.get()  #clear out event queue
-    FPS = 10
-
-    # Conect to server
-    #cli = SmsTcpClient( "cli", '127.0.0.1', 9999)
-    cli = SmsTcpClient( "gui2", '192.168.1.166', 9999)
-    print "## RegName: " + cli.sm_func(cli.name, 'Serv.RegName', cli.name)
-    print "## CpuTemp: " + cli.sm_func(cli.name, 'Serv.CpuTemp', '.')
-    
-    t0 = time.time()
-    while time.time() - t0 < 0.1:
-        DISPLAYSURF.fill(BGCOLOR)
-        rotatedSurf1 = pygame.transform.rotate(titleSurf1, degrees1)
-        rotatedRect1 = rotatedSurf1.get_rect()
-        rotatedRect1.center = (WINDOWWIDTH / 2, WINDOWHEIGHT / 2)
-        DISPLAYSURF.blit(rotatedSurf1, rotatedRect1)
-
-        rotatedSurf2 = pygame.transform.rotate(titleSurf2, degrees2)
-        rotatedRect2 = rotatedSurf2.get_rect()
-        rotatedRect2.center = (WINDOWWIDTH / 2, WINDOWHEIGHT / 2)
-        DISPLAYSURF.blit(rotatedSurf2, rotatedRect2)
-
-        drawPressKeyMsg()
-#KRT 14/06/2012 rewrite event detection to deal with mouse use
-        if checkForKeyPress():
-            return
-        pygame.display.update()
-        FPSCLOCK.tick(FPS)
-        degrees1 += 3 # rotate by 3 degrees each frame
-        degrees2 += 7 # rotate by 7 degrees each frame
-
-
 def terminate():
-    global cli
-    cli.sm_func(cli.name, 'Serv.UnRegName', cli.name)
+    global cli, rpc
+
+    cli.close()
+    rpc.close()
+    
+    #cli.sm_func(cli.name, 'Serv.UnRegName', cli.name)
     
     pygame.quit()
     sys.exit()
@@ -396,39 +437,12 @@ def getRandomLocation():
     #{'x': random.randint(0, CELLWIDTH - 1), 'y': random.randint(0, CELLHEIGHT - 1)}
 
 
-def showGameOverScreen():
-    gameOverFont = pygame.font.Font('freesansbold.ttf', 150)
-    gameSurf = gameOverFont.render('Game', True, WHITE)
-    overSurf = gameOverFont.render('Over', True, WHITE)
-    gameRect = gameSurf.get_rect()
-    overRect = overSurf.get_rect()
-    gameRect.midtop = (WINDOWWIDTH / 2, 10)
-    overRect.midtop = (WINDOWWIDTH / 2, gameRect.height + 10 + 25)
-
-    DISPLAYSURF.blit(gameSurf, gameRect)
-    DISPLAYSURF.blit(overSurf, overRect)
-    drawPressKeyMsg()
-    pygame.display.update()
-    pygame.time.wait(500)
-#KRT 14/06/2012 rewrite event detection to deal with mouse use
-    pygame.event.get()  #clear out event queue 
-    while True:
-        if checkForKeyPress():
-            return
-#KRT 12/06/2012 reduce processor loading in gameover screen.
-        pygame.time.wait(100)
-
 def drawScore(score):
     scoreSurf = BASICFONT.render('Score: %s' % (score), True, WHITE)
     scoreRect = scoreSurf.get_rect()
     scoreRect.topleft = (WINDOWWIDTH - 120, 10)
     DISPLAYSURF.blit(scoreSurf, scoreRect)
 
-def drawTemp(i, servName, temp):
-    scoreSurf = BASICFONT.render('%s: %s' % (servName, temp), True, WHITE)
-    scoreRect = scoreSurf.get_rect()
-    scoreRect.topleft = (WINDOWWIDTH - 220, 10 + i*20)
-    DISPLAYSURF.blit(scoreSurf, scoreRect)
 
 def drawWorm(wormCoords):
     for coord in wormCoords:
