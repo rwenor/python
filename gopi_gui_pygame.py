@@ -422,7 +422,7 @@ def checkForKeyPress():
     
 def terminate():
     global cli, rpc
-    
+
     cli.close()
     rpc.close()
     
