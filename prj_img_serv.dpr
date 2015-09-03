@@ -1,0 +1,14 @@
+program prj_img_serv;
+
+uses
+  Vcl.Forms,
+  Img_serv in 'Img_serv.pas' {Form1};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TForm1, Form1);
+  Application.Run;
+end.
