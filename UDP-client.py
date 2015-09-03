@@ -1,7 +1,7 @@
 import socket, sys
 import time
 
-dest = ('<broadcast>', 5000)
+dest = ('<broadcast>', 720)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -9,6 +9,8 @@ s.sendto("Hello from client", dest)
 t0 = time.time()
 
 print "Listening for replies; press Ctrl-C to stop."
+print dest
+
 while 1:
     s.settimeout(5)
     try:
