@@ -205,7 +205,7 @@ class SmsTcpServer:
         
 class SmsTcpClient:  
 
-    def __init__(self, name, addr, port):
+    def __init__(self, name, addr, port, unik = True):
         self.name = name
         self.addr = (addr, port)
         
@@ -216,7 +216,10 @@ class SmsTcpClient:
         self.waiting = None
         #self.disp_sm = Disp_sm_pi
         self.t0 = time.time()
-        self.sm_func(self.name, 'Serv.RegName', self.name)
+        if unik:
+            self.sm_func(self.name, 'Serv.RegName', self.name)
+        else:
+            self.name = self.sm_func(self.name, 'Serv.GetName', self.name)
 
 
     def close(self):
