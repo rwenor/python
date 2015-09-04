@@ -40,6 +40,11 @@ def Disp_sm_serv(fra, til, data, con, serv):
         conDict[data] = sms_client(data, '', con)
         data = 'ACK'
         print conDict
+    elif til[0] == 'GetName':
+        data = data + str( len(conDict) )
+        conDict[data] = sms_client(data, '', con)
+        # returner navn  data = 'ACK'
+        print conDict
     elif til[0] == 'ping':
         #conDict[data] = sms_client(data, '', con)
         data = 'ACK'
