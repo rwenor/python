@@ -29,7 +29,7 @@ data3 = []
 
 i = 0
 #with open('temp.dat', 'r') as f:
-with open('TempLogBad.dat', 'r') as f:
+with open('TempLog.dat', 'r') as f:
     for line in f:
         i = i + 1
         if i < 3:
@@ -52,9 +52,11 @@ with open('TempLogBad.dat', 'r') as f:
                 
 #print data
 #pl.figure(1)
-pl.plot(data1)
-pl.plot(data2)
-pl.plot(data3)
+dagSamp = 6*24
+samp = dagSamp*10
+pl.plot(data1[:-samp])
+pl.plot(data2[:-samp])
+pl.plot(data3[:-samp])
 
 pl.xlabel('x')
 pl.ylabel('Temp / hum/10')

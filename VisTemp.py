@@ -61,9 +61,9 @@ with open(loadFile, 'r') as f:
                 
 #print data
 #pl.figure(1)
-pl.plot(data1)
-pl.plot(data2)
-pl.plot(data3)
+pl.plot(data1[-6*24*10:])
+pl.plot(data2[-6*24*10:])
+pl.plot(data3[-6*24*10:])
 
 pl.xlabel('x')
 pl.ylabel('Temp / hum/10')
