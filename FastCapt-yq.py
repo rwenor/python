@@ -1,10 +1,28 @@
 import io
 import time
 import picamera
+from PIL import Image
 
+import logging
 import multiprocessing
 
 img = []
+
+workerList = []
+
+# debugPrint - Using logging
+deb_time = time.time()
+no_deb = False
+
+logging.basicConfig(level=logging.DEBUG,
+                    format='(%(threadName)-10s) %(message)s',
+                    )
+def dprt(dstr, f = False):
+    if no_deb and not f:
+        return
+
+    diff = int((time.time() - deb_time)*1000)
+    logging.debug(str(diff) + ': ' + dstr)
 
 
 
@@ -13,33 +31,21 @@ def img_load(img_q, stream, i):
     img = Image.open(stream)
     #q.task_done()
     
-    buffer = img.load()
+    buf = img.load()
     dprt('Loaded ' + str( i ) )
-    queue2.put(i)
+    img_q.put(buf)
     
     
-    if buf1 is None:
-        dprt('Buff setup')
-        #buf0 = buffer
-        buf1 = buffer
-        #img0 = img
-        img1 = img
-            
-    
-    changedPixels0, takePicture0, debugimage = GetDiffDbImg(buf1, buffer)
+    #changedPixels0, takePicture0, debugimage = GetDiffDbImg(buf1, buffer)
     #dprt('Moved' + str(takePicture0))
-    if takePicture0:
-        saveImage2(img, diskSpaceToReserve, i)
-        
-    
-    buf1 = buffer
-    img1 = img    
+    #if takePicture0:
+    #    saveImage2(img, diskSpaceToReserve, i)
+          
     dprt('Ut ' + str( i ) )
+    return buf
 
-    
-    return stream
 
-def img_worker(q, q2, stream,i, sem):
+def img_worker(q, q2, img_q, i, sem):
     #print 'img_w'
 
     stream = q.get()
@@ -48,9 +54,12 @@ def img_worker(q, q2, stream,i, sem):
     while (stream <> None):
         i += 1
 
-        #print "Wrk:", i
+        dprt( "Wrk:" +  str(i) )
         stream.seek(0)
-        #time.sleep(0.0)
+        img_load(img_q, stream, i)
+
+        # Done with stream
+        stream.seek(0)
         q2.put(stream)
         
         stream = q.get()
@@ -58,7 +67,7 @@ def img_worker(q, q2, stream,i, sem):
     print "Wrk end"
     
 
-def empyt_q2(q, q2, stream,i, sem):
+def empyt_q(q2):
     #print 'img_w'
 
     stream = q2.get()
@@ -68,7 +77,7 @@ def empyt_q2(q, q2, stream,i, sem):
         i += 1
 
         print "Que:", i
-        stream.seek(0)
+        #stream.seek(0)
         
         stream = q2.get()
 
@@ -85,7 +94,8 @@ def outputs(queue, queue2):
         queue.put(stream)
 
     print "Output end"
-    queue.put(None)
+    for w in workerList:
+        queue.put(None)
     
         
     
@@ -93,17 +103,18 @@ def outputs(queue, queue2):
 with picamera.PiCamera() as camera:
     queue = multiprocessing.Queue()
     queue2 = multiprocessing.Queue()
+    img_q = multiprocessing.Queue()
 
     for i in range(0,4):
         queue2.put( io.BytesIO() )
 
     print queue2
     #queue.put(None)
+    for i in range(2):
+        tw = multiprocessing.Process(name='worker', target=img_worker, args=(queue, queue2, img_q,0, None))
+        tw.start()
+        workerList.append(tw)
 
-    tw = multiprocessing.Process(name='worker 1', target=img_worker, args=(queue, queue2, None,0, None))
-    ##tw = threading.Thread(target=img_worker, args=(queue, queue2, None,0, None))
-    tw.start()
-    
     # Set the camera's resolution to VGA @40fps and give it a couple
     # of seconds to measure exposure etc.
     camera.resolution = (640, 480)
@@ -117,20 +128,22 @@ with picamera.PiCamera() as camera:
     # How fast were we?
     print('Captured 40 images at %.2ffps' % (40 / (finish - start)))
  
-    #time.sleep(1)
+    time.sleep(2)
     #queue.put(None)
 
     print "-"
     #if tw.is_alive():
-    #    tw.join()
+        #tw.join()
     print "="
     queue2.put(None)
+    img_q.put(None)
 
 
-    tw = multiprocessing.Process(name='empty q2', target=empyt_q2, args=(queue, queue2, None,0, None))
-    ##tw = threading.Thread(target=img_worker, args=(queue, queue2, None,0, None))
+    tw = multiprocessing.Process(name='empty q2', target=empyt_q, args=(queue2,))
     tw.start()
-    tw.join()
+    tw = multiprocessing.Process(name='empty img_q', target=empyt_q, args=(img_q,))
+    tw.start()
+    #tw.join()
 
     #while queue2.get() <> None:
     #    print "*"
