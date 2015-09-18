@@ -7,8 +7,8 @@ import picamera
 # Connect a client socket to my_server:8000 (change my_server to the
 # hostname of your server)
 client_socket = socket.socket()
-#client_socket.connect(('0.0.0.0', 8000))
-client_socket.connect(('192.168.1.201', 8000))
+client_socket.connect(('0.0.0.0', 8000))
+#client_socket.connect(('192.168.1.201', 8000))
 
 # Make a file-like object out of the connection
 connection = client_socket.makefile('wb')
@@ -26,7 +26,7 @@ try:
         start = time.time()
         stream = io.BytesIO()
         i = 0
-        for foo in camera.capture_continuous(stream, 'bmp'):
+        for foo in camera.capture_continuous(stream, 'jpg'):
             # Write the length of the capture to the stream and flush to
             # ensure it actually gets sent
 

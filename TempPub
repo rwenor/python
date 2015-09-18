@@ -6,8 +6,8 @@ cd /home/pi/python
 while true
 do
   date
-  ./VisTemp.py -p Bad -s /var/www/TempBad.png
-  ./VisTemp.py -p Ute -s /var/www/TempUte.png
+  ./VisTemp.py -p Bad -s /var/www/TempBad.png -d 6
+  ./VisTemp.py -p Ute -s /var/www/TempUte.png -d 6
 
   sleep 600
 done
