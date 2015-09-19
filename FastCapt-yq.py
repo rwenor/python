@@ -33,7 +33,7 @@ def img_load(img_q, stream, i):
     
     buf = img.load()
     dprt('Loaded ' + str( i ) )
-    img_q.put(buf)
+    #img_q.put(buf)
     
     
     #changedPixels0, takePicture0, debugimage = GetDiffDbImg(buf1, buffer)
@@ -73,7 +73,8 @@ def empyt_q(q2):
     stream = q2.get()
     i = -1
 
-    while (stream <> None):
+    #while (stream <> None):
+    while (not q2.empty()):
         i += 1
 
         print "Que:", i
@@ -119,6 +120,7 @@ with picamera.PiCamera() as camera:
     # of seconds to measure exposure etc.
     camera.resolution = (640, 480)
     camera.framerate = 80
+    camera.start_preview()
     time.sleep(2)
     # Set up 40 in-memory streams
     #outputs = [io.BytesIO() for i in range(40)]

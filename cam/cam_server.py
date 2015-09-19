@@ -6,13 +6,15 @@ import picamera
 
 # SRC: http://picamera.readthedocs.org/en/release-1.10/recipes1.html#capturing-to-a-network-stream
 
-# Connect a client socket to my_server:8000 (change my_server to the
-# hostname of your server)
-client_socket = socket.socket()
-client_socket.connect(('rap', 8000))
+# Server tar bilder
+server_socket = socket.socket()
+server_socket.bind(('0.0.0.0', 8000))
+server_socket.listen(0)
 
-# Make a file-like object out of the connection
-connection = client_socket.makefile('wb')
+# Accept a single connection and make a file-like object out of it
+connection = server_socket.accept()[0].makefile('rb')
+
+
 try:
     with picamera.PiCamera() as camera:
         camera.resolution = (640, 480)
@@ -48,5 +50,5 @@ try:
     connection.write(struct.pack('<L', 0))
 finally:
     connection.close()
-    client_socket.close()
+    server_socket.close()
 
