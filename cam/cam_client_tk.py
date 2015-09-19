@@ -17,13 +17,11 @@ import io
 import Tkinter
 import Image, ImageTk
 import time
-import picamera
-
 
 import socket
 import struct
 client_socket = socket.socket()
-client_socket.connect(('rap', 8000))
+client_socket.connect(('rwe1814.asuscomm.com', 8000))
 
 # Make a file-like object out of the connection
 connection = client_socket.makefile('wb')
