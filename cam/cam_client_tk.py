@@ -15,13 +15,24 @@ Noah Spurrier 2007
 import os, sys
 import io
 import Tkinter
-import Image, ImageTk
+
+try:
+    import Image
+except ImportError:
+    from PIL import Image
+    
+try:
+    import ImageTk
+except ImportError:
+    from PIL import ImageTk
+
 import time
 
 import socket
 import struct
 client_socket = socket.socket()
-client_socket.connect(('rwe1814.asuscomm.com', 8000))
+#client_socket.connect(('rwe1814.asuscomm.com', 8000))
+client_socket.connect(('rwe1814.asuscomm.com', 8001))
 
 # Make a file-like object out of the connection
 connection = client_socket.makefile('wb')
