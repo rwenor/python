@@ -117,7 +117,7 @@ class ShowList(object):
     def add(self, line):
         self.data.append(line)
         if len(self.data) > self.maxItem:
-            self.data.pp(0)
+            self.data.pop(0)
     
     def draw(self):
         for i, line in enumerate(self.data):
