@@ -20,7 +20,8 @@ class IndexView(generic.ListView):
           
         q = Question.objects.filter( pub_date__lte=timezone.now(),
             choice__isnull=False
-            ).distinct().order_by('-pub_date')
+            ).distinct()
+        q = q.order_by('-pub_date')
         
         
         #q = Question.objects.raw("select * from polls_question")
