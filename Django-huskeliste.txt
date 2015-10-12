@@ -1,0 +1,32 @@
+Django - Husk liste
+--------------------
+
+http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/
+http://karwin.blogspot.no/2010/03/rendering-trees-with-closure-tables.html
+
+
+python manage.py startapp closure
+
+python manage.py makemigrations closure
+
+python manage.py sqlmigrate closure 0001
+
+python manage.py migrate
+python manage.py makemigrations closure
+
+python manage.py runserver
+
+
+polls/admin.py
+
+from django.contrib import admin
+
+from .models import Question
+
+admin.site.register(Question)
+
+python manage.py validate --traceback
+
+
+Url i closure og mysite2
+view har kode
