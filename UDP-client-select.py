@@ -1,7 +1,7 @@
 import socket, sys, select
 import time
 
-dest = ('<broadcast>', 5000)
+dest = ('<broadcast>', 720)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
