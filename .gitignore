@@ -4,5 +4,8 @@
 *.dat
 *.log
 *.h264
+*.bak
+*.dsk
+*.~dsk
 __pycache__
 Thumbs.db
