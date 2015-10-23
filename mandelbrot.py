@@ -10,7 +10,7 @@ def mandelbrot( h,w, maxit=20 ):
         z = c
         divtime = maxit + zeros(z.shape, dtype=int)
 
-        for i in xrange(maxit):
+        for i in range(maxit):
                 z  = z**2 + c
                 diverge = z*conj(z) > 2**2            # who is diverging
                 div_now = diverge & (divtime==maxit)  # who is diverging now
@@ -21,7 +21,7 @@ def mandelbrot( h,w, maxit=20 ):
 
 t = time.time()
 map = mandelbrot(800,800)
-print time.time() - t
+print( time.time() - t )
 
 pylab.imshow(map)
 pylab.show()

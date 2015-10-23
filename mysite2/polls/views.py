@@ -85,15 +85,16 @@ def listParts():
     output = ''
     i = 0
     for p in parts:
-        print i, p
-        print str(p.ma_id),'|', p.ma_desc,'|', p.mn_id.mn_name,'|', p.mn_nr
-
+        print( i, p )
+        print( str(p.ma_id),'|', p.ma_desc,'|', p.mn_id.mn_name,'|', p.mn_nr )
+        #output += '<p>{0}    {1}  - {2} </p>'.format( str(i), str(p.ma_id), unicode(p.ma_desc) )
         try:
-            output += '<p>{0}: {1}  - {2}: {3}</p>'.format(str(p.ma_id), unicode(p.ma_desc), p.mn_id.mn_name, p.mn_nr)
+            output += '<p>{0}: {1}  - {2}: {3}</p>'.format(str(p.ma_id), p.ma_desc, p.mn_id.mn_name, p.mn_nr)
         except:
-            print "*************"
+            print( "*************" )
             pass
-        print i, p.ma_id, p.ma_desc
+            
+        print( i, p.ma_id, p.ma_desc )
         i += 1
     return output
 
@@ -107,7 +108,7 @@ def listDf(df):
     output = ''
     for i in df.index:
         if math.isnan( df.iloc[i]['mamut nr'] ):
-            print 'Next', i
+            print( 'Next', i )
             continue
             
             
@@ -117,18 +118,18 @@ def listDf(df):
         
         output += '<p>%d\t%d\t%s</p>' % (i, df.iloc[i]['mamut nr'], df.iloc[i]['beskrivelse'],)
         p = Ma_Part.objects.get_or_create(ma_id=df.iloc[i]['mamut nr'], ma_desc=df.iloc[i]['beskrivelse'], mn_id=mn, mn_nr=df.iloc[i]['levr pro nr'], mn_desc='')
-        print p
+        print( p )
         
         try: 
             p.save()
         except:
             pass
-        print i
+        print( i )
         
         
         
         #output += '<p>%d\t%d\t%s</p>' % (i, df.iloc[i][6], df.iloc[i]['levr pro nr'],)
-        #print p.mn_id
+        #print( p.mn_id )
         #output += '<p>{0}: {1}  - {2}: {3}</p>'.format(str(p.ma_id), p.ma_desc, p.mn_id.mn_name, p.mn_nr)
     return output
     

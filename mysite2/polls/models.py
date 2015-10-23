@@ -22,7 +22,7 @@ class Choice(models.Model):
     choice_text = models.CharField(max_length=200)
     votes = models.IntegerField(default=0)
     
-    def __unicode__(self):              # __unicode__ on Python 2
+    def __str__(self):              # __unicode__ on Python 2
         return self.choice_text
 
 
@@ -30,7 +30,7 @@ class Mn_Name(models.Model):
     mn_name = models.CharField(max_length=20)
     mn_url =  models.CharField(max_length=60)
 
-    def __unicode__(self):              # __unicode__ on Python 2
+    def __str__(self):              # __unicode__ on Python 2
         return self.mn_name
 
 class Ma_Part(models.Model):
@@ -49,7 +49,7 @@ class Thing(models.Model):
     ma_id = models.ForeignKey(Ma_Part)
     thing_desc =  models.CharField(max_length=60)
 
-    def __unicode__(self):              # __unicode__ on Python 2
+    def __str__(self):              # __unicode__ on Python 2
         return str(self.ma_id) +': '+ self.thing_desc
 
 
@@ -58,5 +58,5 @@ class Part(models.Model):
     ma_id = models.ForeignKey(Ma_Part, default=0)
     part_desc =  models.CharField(max_length=60)
 
-    def __unicode__(self):              # __unicode__ on Python 2
+    def __str__(self):              # __unicode__ on Python 2
         return str(self.ma_id) +': '+ self.part_desc
