@@ -29,5 +29,15 @@ python manage.py validate --traceback
 
 
 Url i closure og mysite2
+<<<<<<< Local Changes
+<<<<<<< Local Changes
 view har kode
 
+python manage.py test <modul>=======
+view har kode
+
+>>>>>>> External Changes
+=======
+view har kode
+
+>>>>>>> External Changes
