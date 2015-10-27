@@ -89,7 +89,8 @@ def listParts():
         print( str(p.ma_id),'|', p.ma_desc,'|', p.mn_id.mn_name,'|', p.mn_nr )
         #output += '<p>{0}    {1}  - {2} </p>'.format( str(i), str(p.ma_id), unicode(p.ma_desc) )
         try:
-            output += '<p>{0}: {1}  - {2}: {3}</p>'.format(str(p.ma_id), p.ma_desc, p.mn_id.mn_name, p.mn_nr)
+            url = '<a href="{0}/{1}">{2}</a>'.format(p.mn_id.mn_url, p.mn_nr, p.ma_desc)
+            output += '<p>{0}: {1}  - {2}: {3}</p>'.format(str(p.ma_id), url, p.mn_id.mn_name, p.mn_nr)
         except:
             print( "*************" )
             pass
