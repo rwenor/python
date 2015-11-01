@@ -98,7 +98,7 @@ def indexHello(request):
 
 
     ax, c = Mn_Name.objects.get_or_create(mn_name='Axicon')
-    axp = Ma_Part.objects.create(ma_id=102, ma_desc='Ax 2', mn_id=ax, mn_nr='1010101', mn_desc='foo ooo o o')
+    axp = Ma_Part.objects.get_or_create(ma_id=107, ma_desc='Ax 2', mn_id=ax, mn_nr='1010101', mn_desc='foo ooo o o')
     axp.save()
 
 

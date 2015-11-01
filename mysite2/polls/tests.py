@@ -194,6 +194,10 @@ class Ma_PartTests(TestCase):
         self.assertTrue(c)
         self.assertEqual(Mn_Name.objects.count(), 1)
 
+        ax, c = Mn_Name.objects.get_or_create(mn_name='Axicon')
+        self.assertFalse(c)
+        self.assertEqual(Mn_Name.objects.count(), 1)
+
         axp = Ma_Part.objects.create(ma_id=101, ma_desc='Ax 1', mn_id=ax, mn_nr='101010101', mn_desc='foo ooo o o')
 
         axp.save()
