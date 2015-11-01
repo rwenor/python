@@ -43,3 +43,5 @@ view har kode
 >>>>>>> External Changes
 conda create -n py34 python=3.4 anaconda
 activate py34
+
+conda install mysql-python

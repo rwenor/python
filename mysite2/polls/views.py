@@ -105,7 +105,7 @@ def indexHello(request):
     return HttpResponse( output )
 
 
-def listDf(df):
+def listDfImp(df):
     output = ''
     for i in df.index:
         if math.isnan( df.iloc[i]['mamut nr'] ):
@@ -135,11 +135,60 @@ def listDf(df):
     return output
     
     
-def indexHello2(request):
+def indexHello2Imp(request):
     import pandas as pd
     df = pd.read_csv("parts-ax200", sep='\t')
     
-    output = listDf(df) 
+    output = listDfImp(df) 
     #$listParts()
     return HttpResponse( output )
 
+
+import MySQLdb as db
+
+def getTable(cur):
+    o = '<table border="1" style="width:100%">'
+    o += '<tr>'
+    field_names = [i[0] for i in cur.description]
+    for i in field_names:
+        o += '<th>{0}</th>'.format(i)
+    o += '</tr>'
+        
+    for row in cur:
+        o += '<tr>'
+        for i in row:
+            o += '<td>{0}</td>'.format(i)    
+        o += '</tr>'
+    return o + '</table>'
+    
+
+def indexHello2(request):
+
+    sett_nr = '273'
+    #sql = "SELECT maalested_kode FROM datk.datkstatus ds join maalested using (maalested_id) where ds.datk_id = "+ sett_nr
+    sql = "select * from kjonn"
+    
+    # admdb = db.connect('dbserver.datk.vpn','DatkUtv','Bjo#Br1ds0!','datk')
+    admdb = db.connect('server2.datk.vpn','DatkUtv','Bjo#Br1ds0!','datk')
+    cur = admdb.cursor()
+    cur.execute(sql)
+
+    #ver = cur.fetchone()
+       
+    output = '<p>listDfImp(df)</p>' 
+    output += '<p>{0}</p>'.format(sql)
+    #output += '<p>{0}</p>'.format(ver)
+    
+    field_names = [i[0] for i in cur.description]
+    output += '<p>{0}</p>'.format(field_names)
+    
+    for row in cur:
+        output += '<p>{0}</p>'.format(row)
+    #$listParts()
+    
+    output += getTable(cur)
+    
+    return HttpResponse( output )
+
+
+    
