@@ -28,6 +28,7 @@ try:
         # our protocol simple)
         start = time.time()
         stream = io.BytesIO()
+        i = 0
         
         #for foo in camera.capture_continuous(stream, 'jpeg'):
         while True:
@@ -46,6 +47,8 @@ try:
             # Reset the stream for the next capture
             stream.seek(0)
             stream.truncate()
+            i += 1
+            print i
     # Write a length of zero to the stream to signal we're done
     connection.write(struct.pack('<L', 0))
 finally:

@@ -32,7 +32,7 @@ def index(request):
     cursor.execute("SELECT * FROM nodes ")
     row = getTable(cursor)
     
-    print row
+    print( row )
     
     output = row
     return HttpResponse(output)
