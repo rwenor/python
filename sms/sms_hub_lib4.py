@@ -11,6 +11,10 @@ conDict = {}
 servName = 'Serv'
 
 
+def deb(msg):
+    print msg
+
+
 def Disp_sm_SetName(name):
     servName = name
 
@@ -34,22 +38,22 @@ def Disp_sm_serv(fra, til, data, con, serv):
     if til[0] == 'UnRegName':
         del conDict[data]
         data = 'BYE'
-        print conDict
+        # print conDict
     elif til[0] == 'RegName':
         conDict[data] = sms_client(data, '', con)
         data = 'ACK'
-        print conDict
+        # print conDict
     elif til[0] == 'GetName':
         data += str(len(conDict))
         conDict[data] = sms_client(data, '', con)
         # returner navn  data = 'ACK'
-        print conDict
+        # print conDict
     elif til[0] == 'ping':
         # conDict[data] = sms_client(data, '', con)
         data = 'ACK'
-        print conDict
+        # print conDict
     elif til[0] == 'ListCli':
-        print conDict
+        # print conDict
         # conDict[data] = sms_client(data, '', con)
         data = None
         for k, v in conDict.items():
@@ -68,7 +72,7 @@ def Disp_sm_hub(fra, til, data, con, serv=None):
 
     # print 'YYYYYY'
     if to == servName:
-        print '*S'
+        print 'S',
         data = Disp_sm_serv(fra, tlist, data, con, serv)
 
     elif to in conDict:
@@ -111,7 +115,7 @@ class SmsTcpServer:
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # self.sock.settimeout(10)
         self.sock.bind(self.addr)
-        self.deb = True
+        self.deb = False
 
     def close(self):
         print 'sock.closeing...'
@@ -140,7 +144,8 @@ class SmsTcpServer:
 
                 if data:
                     l = data.strip().split('\t')
-                    print >> sys.stderr, 'H> "%s"' % str(len(l)) + ' : ' + data
+                    if self.deb:
+                        print >> sys.stderr, 'H>x "%s"' % str(len(l)) + ' : ' + data
 
                     # Ekstra element?
                     if len(l) < 2:
