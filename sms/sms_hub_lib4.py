@@ -9,10 +9,11 @@ from sms_pi import *
 conDict = {}
 
 servName = 'Serv'
+DEBUG_ON = True
 
-
-def deb(msg):
-    print msg
+def deb(msg, always=0):  # Styres med DEBUG_ON, overide 1, never -1  
+    if (DEBUG_ON and always > -1) or always > 0:
+        print msg    
 
 
 def Disp_sm_SetName(name):
@@ -76,10 +77,10 @@ def Disp_sm_hub(fra, til, data, con, serv=None):
         data = Disp_sm_serv(fra, tlist, data, con, serv)
 
     elif to in conDict:
-        print '*H'
+        print '^',
         to_sm = conDict[to]
         msg = fra + '\t' + til + '\t' + data
-        print '<< "' + msg + '" --> ' + to_sm.cName
+        deb('<< "' + msg + '" --> ' + to_sm.cName)
         send_sm(to_sm.con, msg)
         # data = Disp_sm_pi(fra, til, data, con)
         data = None
@@ -115,7 +116,7 @@ class SmsTcpServer:
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # self.sock.settimeout(10)
         self.sock.bind(self.addr)
-        self.deb = False
+        self.deb = DEBUG_ON
 
     def close(self):
         print 'sock.closeing...'
@@ -209,7 +210,7 @@ class SmsTcpClient:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print >> sys.stderr, 'Connect to %s on port %s' % self.addr
         self.sock.connect(self.addr)
-        self.deb = True
+        self.deb = DEBUG_ON
         self.waiting = None
         self.waitingMsg = ''
 
