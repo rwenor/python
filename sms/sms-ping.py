@@ -116,6 +116,20 @@ def Xsm_func(fra, til, data):
   
     return l[2]
 
+def pingSystem(name, n, m):
+    t1 = time.time()
+    sock.deb = False
+    for i in xrange(0,n):
+        t0 = time.time()
+        for j in xrange(0,m):
+            sock.sm_func(sysName, name + '.ping', '.')
+            
+        print name, 'ping: ',i, (time.time() - t0)*1000 / m, 'ms' 
+        #time.sleep(0.1)
+
+    print  i*j, time.time() - t1, 's'
+    
+    sock.deb = True    
 
 
 ##### MAIN
@@ -139,24 +153,14 @@ try:
     print
     print 1
     print "-> RegName: " + sock.sm_func(sysName, 'Serv.RegName', sysName)
-    print "-> ping: " + sock.sm_func(sysName, 'Serv.ping', '.')
-    print "-> ping: " + sock.sm_func(sysName, 'Serv.ping', '.')
-    print "-> Test1.CpuTemp: " + sock.sm_func(sysName, 'Test1.CpuTemp', '.')
+    print "-> Serv ping: " + sock.sm_func(sysName, 'Serv.ping', '.')
+    print "-> GoPiGo ping: " + sock.sm_func(sysName, 'GoPiGo.ping', '.')
+    print "-> Serv.CpuTemp: " + sock.sm_func(sysName, 'Serv.CpuTemp', '.')
+    print "-> GoPiGo.CpuTemp: " + sock.sm_func(sysName, 'GoPiGo.CpuTemp', '.')
 
-    t1 = time.time()
-    sock.deb = False
-    for i in xrange(0,10):
-        t0 = time.time()
-        for j in xrange(0,100):
-            sock.sm_func(sysName, 'Serv.ping', '.')
-            
-        print 'ping: ',i, (time.time() - t0)*10, 'ms' 
-        
-        #time.sleep(0.1)
-        #print
-    print  i*j, time.time() - t1, 's'
-    
-    sock.deb = True    
+    pingSystem('Serv', 4, 100)
+    pingSystem('GoPiGo', 4, 100)
+
     print 2    
     #time.sleep(15)
     print 3
