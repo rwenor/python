@@ -120,7 +120,7 @@ def Xsm_func(fra, til, data):
 
 ##### MAIN
 if len(sys.argv) < 3:
-    sys.argv = ["Testing", "127.0.0.1", "Test1"]
+    sys.argv = ["Testing", "rwe1814.asuscomm.com", "Test1"]
 
 
 sysName = sys.argv[2]
