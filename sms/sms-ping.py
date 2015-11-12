@@ -127,7 +127,7 @@ def pingSystem(name, n, m):
         print name, 'ping: ',i, (time.time() - t0)*1000 / m, 'ms' 
         #time.sleep(0.1)
 
-    print  i*j, time.time() - t1, 's'
+    print  i*j, "ping tok", time.time() - t1, 's'
     
     sock.deb = True    
 
