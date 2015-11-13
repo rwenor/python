@@ -9,6 +9,11 @@ from sms_pi import *
 conDict = {}
 
 servName = 'Serv'
+DEBUG_ON = True
+
+def deb(msg, always=0):  # Styres med DEBUG_ON, overide 1, never -1  
+    if (DEBUG_ON and always > -1) or always > 0:
+        print msg    
 
 
 def Disp_sm_SetName(name):
@@ -34,22 +39,22 @@ def Disp_sm_serv(fra, til, data, con, serv):
     if til[0] == 'UnRegName':
         del conDict[data]
         data = 'BYE'
-        print conDict
+        # print conDict
     elif til[0] == 'RegName':
         conDict[data] = sms_client(data, '', con)
         data = 'ACK'
-        print conDict
+        # print conDict
     elif til[0] == 'GetName':
         data += str(len(conDict))
         conDict[data] = sms_client(data, '', con)
         # returner navn  data = 'ACK'
-        print conDict
+        # print conDict
     elif til[0] == 'ping':
         # conDict[data] = sms_client(data, '', con)
         data = 'ACK'
-        print conDict
+        # print conDict
     elif til[0] == 'ListCli':
-        print conDict
+        # print conDict
         # conDict[data] = sms_client(data, '', con)
         data = None
         for k, v in conDict.items():
@@ -68,14 +73,14 @@ def Disp_sm_hub(fra, til, data, con, serv=None):
 
     # print 'YYYYYY'
     if to == servName:
-        print '*S'
+        print 'S',
         data = Disp_sm_serv(fra, tlist, data, con, serv)
 
     elif to in conDict:
-        print '*H'
+        print '^',
         to_sm = conDict[to]
         msg = fra + '\t' + til + '\t' + data
-        print '<< "' + msg + '" --> ' + to_sm.cName
+        deb('<< "' + msg + '" --> ' + to_sm.cName)
         send_sm(to_sm.con, msg)
         # data = Disp_sm_pi(fra, til, data, con)
         data = None
@@ -111,7 +116,7 @@ class SmsTcpServer:
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # self.sock.settimeout(10)
         self.sock.bind(self.addr)
-        self.deb = True
+        self.deb = DEBUG_ON
 
     def close(self):
         print 'sock.closeing...'
@@ -140,7 +145,8 @@ class SmsTcpServer:
 
                 if data:
                     l = data.strip().split('\t')
-                    print >> sys.stderr, 'H> "%s"' % str(len(l)) + ' : ' + data
+                    if self.deb:
+                        print >> sys.stderr, 'H>x "%s"' % str(len(l)) + ' : ' + data
 
                     # Ekstra element?
                     if len(l) < 2:
@@ -204,7 +210,7 @@ class SmsTcpClient:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print >> sys.stderr, 'Connect to %s on port %s' % self.addr
         self.sock.connect(self.addr)
-        self.deb = True
+        self.deb = DEBUG_ON
         self.waiting = None
         self.waitingMsg = ''
 
