@@ -141,6 +141,15 @@ class PingGrf(object):
                    dpi=100,   )
         self.ax = self.fig.gca()
 
+    def setData(self, val):
+        
+        self.data1 = []
+        self.data2 = []
+        
+        for i in xrange(0, self.size):
+            self.data1.append( val )
+            self.data2.append( val )
+    
     def draw(self):
         DISPLAYSURF.blit(self.surf, (0,0))
 
@@ -294,6 +303,8 @@ def runGame():
                     serv_temp = ''                    
                     serv_temp2 = ''
                     gopi_volt = ''
+                    pingGrf.setData(0)
+                    
                 elif (event.key == K_r):
                     cli.sendSM('STemp', 'Serv.CpuTemp', '.')
                     cli.sendSM('STemp2', 'GoPiGo.CpuTemp', '.')
