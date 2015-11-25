@@ -5,6 +5,7 @@ import time
 import os
 import threading
 from sms_pi import *
+# import datetime
 
 conDict = {}
 
@@ -15,6 +16,9 @@ def deb(msg, always=0):  # Styres med DEBUG_ON, overide 1, never -1
     if (DEBUG_ON and always > -1) or always > 0:
         print msg    
 
+def nowstr():
+    # now = datetime.datetime.now()
+    return time.strftime("%Y-%m-%d %H:%H:%S"); 
 
 def Disp_sm_SetName(name):
     servName = name
@@ -190,7 +194,10 @@ class SmsTcpServer:
                 print >> sys.stderr, 'S: Waiting for a connection'
 
                 connection, client_address = self.sock.accept()
-                print 'S: Accept...'
+                print 'S: Accept: ', client_address
+
+                with open("sms-con.log", "a") as myf:
+                    myf.write(str(client_address) + ' ' + nowstr() + "\n")
 
                 # con_recv(connection, client_address)
                 t = threading.Thread(target=self.con_recv_hub, args=(connection, client_address))

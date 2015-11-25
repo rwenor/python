@@ -1,1 +1,1 @@
-raspivid -t 999999 -o - -w 512 -h 512 -fps 15 | nc -l 9999 
+raspivid -t 999999 -o - -w 512 -h 512 -fps 15 | nc -l 8000 
