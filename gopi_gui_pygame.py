@@ -299,11 +299,12 @@ def runGame():
                 elif (event.key == K_g):
                     cli.sendSM('GVolt', 'GoPiGo.cmd.g', '.')
                 elif (event.key == K_e):
-                    cli.sendSM('GVolt', 'GoPiGo.cmd.b', '.')
+                    # cli.sendSM('GVolt', 'GoPiGo.cmd.b', '.')
                     serv_temp = ''                    
                     serv_temp2 = ''
                     gopi_volt = ''
                     pingGrf.setData(0)
+                    sList.clr()
                     
                 elif (event.key == K_r):
                     cli.sendSM('STemp', 'Serv.CpuTemp', '.')
