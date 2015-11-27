@@ -3,7 +3,7 @@ from functools import partial
 import multiprocessing
 
 import time
-# Test 
+# Test og mer 
  
  
 def mandelbrotCalcRow(yPos, h, w, max_iteration = 1000):
