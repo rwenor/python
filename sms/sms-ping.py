@@ -158,6 +158,8 @@ try:
     print "-> Serv.CpuTemp: " + sock.sm_func(sysName, 'Serv.CpuTemp', '.')
     print "-> GoPiGo.CpuTemp: " + sock.sm_func(sysName, 'GoPiGo.CpuTemp', '.')
 
+    print "-> Serv.ListCli: " + sock.sm_func(sysName, 'Serv.ListCli', '.')
+
     pingSystem('Serv', 4, 100)
     pingSystem('GoPiGo', 4, 100)
 

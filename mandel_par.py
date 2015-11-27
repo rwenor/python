@@ -3,6 +3,8 @@ from functools import partial
 import multiprocessing
 
 import time
+# Test 
+ 
  
 def mandelbrotCalcRow(yPos, h, w, max_iteration = 1000):
     y0 = yPos * (2/float(h)) - 1 #rescale to -1 to 1
