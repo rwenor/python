@@ -31,8 +31,8 @@ import time
 import socket
 import struct
 client_socket = socket.socket()
-#client_socket.connect(('rwe1814.asuscomm.com', 8000))
-client_socket.connect(('rwe1814.asuscomm.com', 8001))
+client_socket.connect(('192.168.1.166', 8000))
+#client_socket.connect(('rwe1814.asuscomm.com', 8001))
 
 # Make a file-like object out of the connection
 connection = client_socket.makefile('wb')

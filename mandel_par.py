@@ -33,7 +33,7 @@ def mandelbrotCalcSetMulti(h, w, max_iteration = 1000):
     pool =multiprocessing.Pool() #creates a pool of process, controls worksers
     #the pool.map only accepts one iterable, so use the partial function
     #so that we only need to deal with one variable.
-    mandelImg = pool.map(partialCalcRow, xrange(h)) #make our results with a map call
+    mandelImg = pool.map(partialCalcRow, range(h)) #make our results with a map call
     pool.close() #we are not adding any more processes
     pool.join() #tell it to wait until all threads are done before going on
  
@@ -43,7 +43,7 @@ def mandelbrotCalcSetMulti(h, w, max_iteration = 1000):
 if __name__=='__main__':
 	t0 = time.time()
 	mandelImg = mandelbrotCalcSetMulti(800, 800, 20)
-	print time.time() - t0
+	print( time.time() - t0)
 
 	plt.imshow(mandelImg)
 	plt.savefig('mandelimg.jpg')

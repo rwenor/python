@@ -135,7 +135,8 @@ print "Press:\n\tw: Move GoPiGo Robot forward\n\ta: Turn GoPiGo Robot left\n\td:
 
 
 if len(sys.argv) < 3:
-    sys.argv = ["GoPiGo_Test", "192.168.1.166", "GoPiGo"]
+    #sys.argv = ["GoPiGo_Test", "192.168.1.166", "GoPiGo"]
+    sys.argv = ["GoPiGo_Test", "109.247.27.11", "GoPiGo"]
     
 sms = SmsTcpClient( sys.argv[2], sys.argv[1], 9999)
 print sms.sm_func(sms.name, 'Serv.RegName', sms.name)

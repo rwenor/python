@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 
-from .models import Question
+from .models import Question, Mn_Name, Ma_Part
 from .models import Choice
 
 class QuestionMethodTests(TestCase):
@@ -154,4 +154,52 @@ class QuestionIndexDetailTests(TestCase):
                                    args=(past_question.id,)))
         self.assertContains(response, past_question.question_text,
                             status_code=200)
-                            
+        # self.assertTrue(False, "???")
+
+
+# ***********
+# Parts
+
+
+def create_mn_name(mn_name):
+    """
+    Creates a question with the given `question_text` published the given
+    number of `days` offset to now (negative for questions published
+    in the past, positive for questions that have yet to be published).
+    """
+    return Mn_Name.objects.create(mn_name=mn_name)
+
+
+class Mn_NameTests(TestCase):
+    def test_mn_name_add(self):
+        mns = Mn_Name.objects.all()
+        print mns
+
+
+        mn = create_mn_name('Axicon')
+        mn.save()
+
+
+        mns = Mn_Name.objects.all()
+        print mns
+
+        self.assertTrue(mns.count() == 1)
+
+class Ma_PartTests(TestCase):
+    def test_ma_part_add(self):
+        cnt = Ma_Part.objects.count()
+        self.assertEqual(cnt, 0)
+
+        ax, c = Mn_Name.objects.get_or_create(mn_name='Axicon')
+        self.assertTrue(c)
+        self.assertEqual(Mn_Name.objects.count(), 1)
+
+        ax, c = Mn_Name.objects.get_or_create(mn_name='Axicon')
+        self.assertFalse(c)
+        self.assertEqual(Mn_Name.objects.count(), 1)
+
+        axp = Ma_Part.objects.create(ma_id=101, ma_desc='Ax 1', mn_id=ax, mn_nr='101010101', mn_desc='foo ooo o o')
+
+        axp.save()
+
+

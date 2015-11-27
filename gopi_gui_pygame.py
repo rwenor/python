@@ -57,7 +57,7 @@ def main():
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
     pygame.display.set_caption('GoPiGo - Gui')
     
-    ipAddr = '109.247.27.11'
+    ipAddr = 'rwe1814.asuscomm.com'
     #ipAddr = 192.168.1.166'
     cli = SmsTcpClient( "gui", ipAddr, 9999, False)
     rpc = SmsTcpClient( "gui-rpc", ipAddr, 9999, False)
@@ -141,6 +141,15 @@ class PingGrf(object):
                    dpi=100,   )
         self.ax = self.fig.gca()
 
+    def setData(self, val):
+        
+        self.data1 = []
+        self.data2 = []
+        
+        for i in xrange(0, self.size):
+            self.data1.append( val )
+            self.data2.append( val )
+    
     def draw(self):
         DISPLAYSURF.blit(self.surf, (0,0))
 
@@ -290,10 +299,13 @@ def runGame():
                 elif (event.key == K_g):
                     cli.sendSM('GVolt', 'GoPiGo.cmd.g', '.')
                 elif (event.key == K_e):
-                    cli.sendSM('GVolt', 'GoPiGo.cmd.b', '.')
+                    # cli.sendSM('GVolt', 'GoPiGo.cmd.b', '.')
                     serv_temp = ''                    
                     serv_temp2 = ''
                     gopi_volt = ''
+                    pingGrf.setData(0)
+                    sList.clr()
+                    
                 elif (event.key == K_r):
                     cli.sendSM('STemp', 'Serv.CpuTemp', '.')
                     cli.sendSM('STemp2', 'GoPiGo.CpuTemp', '.')

@@ -1,0 +1,71 @@
+102	Sortering	Lage lok	mamut nr	prod produkt nr	levr pro nr	leverandør	beskrivelse	a pris	ant	Pris	Kommentar	Behov	Mottatt	Best. ant	Lager 0	LagerT	LagerJ	LagerB	Reserve	Ø.best	dato best	Dato lev.	Lev. Tid	Leveringsinfo
+103	1		101526		PCM3343	KGS	PCM-3343 hovedkort 	2310.000	1	2310	NB!NB! For Axspeed 200 ikke inkluder 2stk Com kabel 1701200220	150	20	?	?			#VALUE!	#VALUE!				7 uker	IO: 80609
+104	2		101527		CFDisk/PCExp	KGS	CF Disk til PCM-3343	605.000	1	605	TS4GCF200I	150			7			7	-143				7 uker	IO: 80609
+105	3		101528		MSWINXPEMBEDDED	KGS	Windows XP embedded Run-Time lisens UK	610.000	1	610	lisens  Otto sender nytt Image!	150			0			0	-150				7 uker	IO: 80609
+106	4		101509	se mamut nr? Oppdater til v2.0.1?	Hamre elektronikk	Hamre	Axspeed 200 kort	3600.000	1	3600		150	15	15	0		3						12 uker	hamre har deler til 150
+107	5		101533		Part #54444	Xymox	2x3 Brytere, tastatur	80.000	1	80	Part #54444 2x3 keypad	150			220			220	70					
+108	6																							
+109	7		101554		25-302-69	Elfa	Patch Cable Cat 0.3m	6.140	1	6	Finn kortere kabel? 10cm? Cat.6 SF/UTP Far: 1525679	150			60			60	-90				2 uker	
+110	8		100408		43-862-56	Elfa	Inntak strøm, 2 WAY, 22 AWG	0.570	1	1	Main power kabel plugg	150			v			#VALUE!	#VALUE!					
+111	9		100405		43-862-80	Elfa	Kontakt for intern 5V power, 4 WAY, 22 AWG	1.010	3	3	ATMEL - PC power kabel plugg	450			har			#VALUE!	#VALUE!					
+112	10		999		Standard flatkabel	?	flatkabel for strøm		0.7	0	0.7m per boks ??	105						0	-105					
+113	11		1015271		PCM3343	KGS	1 display, keyboard, mouse kabel		0	0	1 skk følger PCM-3343	0						0	0					
+114	12		1015272		PCM3343	KGS	RJ45 kabel for RJ45-PCM3343 plugg		0	0	1 skk følger PCM-3343	0						0	0					
+115	13																							
+116	14		101516		KMV	KMV	Aluminium monteringsboks, maskinert og eloksert	2896.000	1	2896	Aluminium m.boks til 3225 (ca.)	150			18			18	-132				8-10 uker	
+117	15		101587		Unica AS	Unica AS	Koffert for AXSPEED  -  Avropes etter behov!	1505.000	1	1505	Bestill ved behov, AVROPES	150			16			16	-134				2 uker	IO:80581, 
+118	16		101541		133-9818	Farnell	RJ45 Netverk ekstern plugg, connector	95.000	1	95	RJ45 Netverk ekstern plugg	150			50			50	-100					
+119	17		101542		44-028-93	Elfa	Amphenol C091 plug, 3 way	35.000	1	35	Power ekstern plugg ????	150			?			#VALUE!	#VALUE!				ca 4 uker	
+120	18		1015261	Følger pc	KGS		15mm avstand messing for PC, 15mm, M3		4	0	Avstandsstykker mellom Atmel og PC	600			0			0	-600					
+120	18	R5B94	101551		382-967	RS Comp	6mm avstand plast for PC, 6mm, M3	1.440	4	6	Avstandsstykker mellom Atmel og PC	600			0			0	-600					
+121	19		1001		48-012-25	Elfa	8mm avstand med M-F for chassie, 8mm, 3mm	1.440	4	6	Avstandsstykker mellom Atmel og chassie	600			0			0	-600					
+122	20	R5B94	1015511		382-967	RS Comp	avstand for display-pcb, 6mm, M3	1.217	4	5	Avstandsstykker a 100. Display og mellom PC/Atmel	600			0			0	-600					
+121a	19a		1002		48-012-25	Elfa	Spacer bolt 8 mm 5 mm		4		Avstandstykkr under atmel													
+123	21		101752		100166-013	KMV	Trykkfjær Display DIN2098 05x4x7	13.020	4	52	Trykkfjær	600			750			750	150					
+124	22		101548		1420612	Farnell	skruer for display utsiden, M3X12, 3mm	0.309	4	1	Festeskrue pk a 100 stk	600						0	-600					
+125	23		101545		1420015	Farnell	skruer for PCB + plugger, M3X6, 3mm, sort	0.340	10	3	Festeskrue pk a 100 stk	1500						0	-1500					
+126	24		101473		1420610	Farnell	M3X8, Senke flat, til nettverksplugg		4	0	For at netverksplugg ikka skal butte	600			800			800	200					
+127	25		101549		773015	Tingstad	M4X12, 4mm, A4 sotet for lokk til boks	1.660	12	20	Festeskrue lokk pk à 100stk	1800			over 9000?			#VALUE!	#VALUE!					
+128	26		101599		1419991	Farnell	skrue for jordtilkobling, M4X6	0.335	1	0	Festeskrue pk a 100 stk	150			0			0	-150					
+129	27		101579		534-929	RS Comp	6.3mm M5 fixing hole with 45deg blade	0.597	1	1	Jordtilkobling a100	150			0			0	-150					
+130	28		101597			O.Olsen	Tettningspakning for boks, 1,3mm		0.9	0	Rundsnor, cm	135			150			150	15					
+131	29		101767	z:\fartsmaaler axspeed\frontlayout	Side folie	Produktmerking AS	Sidefolie med navn på piezo, lexan?		1		Sidefolie, utstanset	150			0			0	-150					
+132	30		101766	z:\fartsmaaler axspeed\frontlayout	Folie Ax200 front	Produktmerking AS	Frontfolie med navn og meny, lexan	154.000	1	154	Frontfolie Ax200, utstanset	150			100			100	-50					
+133	31		101546		44-003-13	Elfa	Støvkappe for loop plugg 	27.200	1	27	Dust cap loop	150			0			0	-150				3 uker	
+134	32		101565		1608703	Farnell	Støvkappe for piezo pluggene	13.650	8	109	Dust cap piezo	1200			0			0	-1200					
+136	34		101512	Monteres av Tessta		Tessta	Montering plugg på power	90.000	1	90		150			0			0	-150					
+137	35		1015121	Leveres Tessta	PSCA30U-120	Craftec	Craftec power adapter 12C 30W	150.000	1	150	Power	150			30			30	-120				2 uker	io: 80582
+138	36		101714	Axicon monterer	20249	CBK	Strømkabel 1,0m	14.000	1	14	AC Kabel 1,0m.	150			19			19	-131					
+139	37		101555	Leveres Tessta	44-416-06	Elfa	Hylsepropp IP67 3-pol AMPHENOL	70.960	1	71	Plugg For RS: 157-2685	150			150			150	0					
+140	38		1015551	Leveres Tessta	1123530	Farnell	Ekstern PSU - Boks Kabel/kontakt AMPHENOL 3W	79.000	1	79	Plugg For RS: 157-2685	150			???			#VALUE!	#VALUE!					
+141	39		101547	Leveres Tessta	3034719	Farnell	Overgang fra Craftec til plugg 	9.890	1	10	CABLE GLAND, METAL, PG7	150			???			#VALUE!	#VALUE!				7 uker	
+142	40		1003	KGS			Montering flex intern kabler				Gjøres i produksjon?													
+143	41		101558		44-540-54	Elfa	MIL-C-26482 Amphenol	115.360	1	115	1 ekstern loop plugg	150			4			4	-146					
+144	42		1004		PCBCart	PCBCart	Intern Axspeed 200 flex-kabel	100.000	1.00	100	seriekommunikasjon og loop flex kabel	150		150	3			3	3		2015-10-XX		2 uker	
+145	43									0								0	0					
+147	45		1005		1668192	Farnell	20 pins plugg til flex kabel	16.000	3	48	SQW-110-01-L-D	450			0									
+148	46		1006		1668168	Farnell	20 pins plugg til flex kabel (90 grader vinkel)	24.000	3	72	SQT-110-01-L-D-RA 	450			0									
+149	47		1007		1668190	Farnell	10 pins plugg til flex kabel	12.000	1	12	SQW-105-01-L-D	150			0									
+150	48		1008			linkeson (kina)	Montering BNC piezo kabel	12.720	8	102	Monteres komplett i kina	1200	1000	1000	420			1420	220		9/23/2015		2 uker	
+152	50		101535		42-420-23	Elfa	RJ45 female-female	159.500	1	160	RJ45 Nettverkskontakt	150			9			9	-141					
+153	51		101557		25-114-17	Elfa	Patch Cable Cat 1m	9.670	1	10	Cat. 6 RJ 45 kabel	150			v			#VALUE!	#VALUE!					
+154	52																							
+155	53		101573		PCBCart	PCBCart	Tilkoblingskort Display/Bryter	12.140	1	12	DSI Ver 1.2.1	150		500	30			30	380		under behandling		3 uker	
+156	54		101519		Acte AS	Acte AS	Noritake Display GU160x64D	654.000	1	654	GU160x64D	150			156			156	6				12-14 uker	IO: 80574
+157	55		101560		7472374	Farnell	2x10 pin 2mm pitch pin header	8.450	1	8	COM3	150			0			0	-150					
+158	56		101561		1248143	Farnell	1x5 pin 0.1inch pitch pin header	2.000	2	4	COM_DISPLAY	300			0			0	-300					
+159	57		101562		1835033	Farnell	1x2 pin 0.1inch pitch pin header	7.580	1	8	PWR_DISPLAY	150			0			0	-150				2 uker	
+160	58		101563		588738	Farnell	Molex 4 pin power	0.960	1	1	PWR_IN	150			0			0	-150					
+161	59																							
+162	60		101619		PER-89078	BilXtra Skårer	Klar RTV Silikon 80 ml (tube)	69.200	1	69	RTV Silikon	2						0	-150					
+163	61		100470		80-876-03	Elfa	Loctite 480, svart	187.660	1	188	Loctite 480	1						0	-150					
+164	62		101699		80-877-28	Elfa	Loctite 406, hurtiglim	140.790	1	141	Loctite 406	1						0	-150					
+165	63		1009	750010000	4157500	O.Olsen	Chemplex 750,silikonpasta (fett for O-ring)		1	0	Chemplex 750	1 tube						0	-150					
+166	64		101700	SJ-5023 BLACK	48-865-94	Elfa	Gummi fot, 4 stk. per boks ()	1.330	4	5	Gummifötter Svart FE=36st	600			750			750	150					
+167	65		101606		58-114-97	Elfa	??????? Ferritblock 55 Ω ≤ 16 pol	8.120	2	16	??????? 2 stk. per. Fartsmåler	300						0	-300					
+168	66		101616			Axicon	Jordkabel K110A			0					0									
+169	67		101612		55-406-48	Elfa	Koblingstråd, RADOX 125 4,0 mm² grønn/gul	8.930	1.1	10	1,1 m pr. fartsmåler, rull a 100 m.	165			?			#VALUE!	#VALUE!					
+170	68		101613		48-207-58	Elfa	Flatstiftshylse Gul 6.3 x 0.8 mm helisolert	1.156	1	1	100 stk./pk	150			?			#VALUE!	#VALUE!					
+171	69		101614		48-215-26	Elfa	Endehylse Grå 4 mm²/12 mm	0.520	1	1	Stk	150			?			#VALUE!	#VALUE!					
+172										14280														
+173	69		1010		DDTD142JC-FDITR-ND	Digi-Key	TRANS PREBIAS NPN 200MW SOT23-3		1	0	Lar antakelig Hamre ordne dette (Joakim)	150			0			0	-150					

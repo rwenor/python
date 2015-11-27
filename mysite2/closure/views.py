@@ -32,7 +32,7 @@ def index(request):
     cursor.execute("SELECT * FROM nodes ")
     row = getTable(cursor)
     
-    print row
+    print( row )
     
     output = row
     return HttpResponse(output)
@@ -76,16 +76,16 @@ def getAncestors(id):
 
 
 
-def detail_tree(request, question_id):
+def detail_tree(request, closure_id):
 
-    ancestors = getAncestors(question_id)
+    ancestors = getAncestors(closure_id)
 
     cursor = connection.cursor()
     cursor.execute("SELECT group_concat(n.label, '-'), n.label, count(*), n.node "
                     +" FROM closure d"
                     +"   join closure a on (d.descendant = a.descendant) "
                     +"   join nodes n on (a.ancestor = n.node) "
-                    +" where d.ancestor = "+ str(question_id)
+                    +" where d.ancestor = "+ str(closure_id)
                     +" group by d.descendant"
                     #+" having ancestor = "+ str(question_id)
                     )
