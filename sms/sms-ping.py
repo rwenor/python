@@ -161,7 +161,7 @@ try:
     print "-> Serv.ListCli: " + sock.sm_func(sysName, 'Serv.ListCli', '.')
 
     pingSystem('Serv', 4, 100)
-    pingSystem('GoPiGo', 4, 100)
+    # pingSystem('GoPiGo', 4, 100)
 
     print 2    
     #time.sleep(15)
