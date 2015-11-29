@@ -21,7 +21,7 @@ class ParsLWStreem:
         self.vStart = 0
         
     def calcSpeed(self, newM):
-        print self.state, newM, self.lastM
+        # print self.state, newM, self.lastM
         if self.state == 1:
             self.lastM = newM
             return -1
@@ -43,10 +43,11 @@ class ParsLWStreem:
         if float(dat[3]) < self.detV[0]:
             self.state += 1
             
-            print line  
-            print self.calcSpeed((float(dat[3]), float(dat[2])))
+            #print line  
+            #print self.calcSpeed((float(dat[3]), float(dat[2])))
             # for i, itm in enumerate(dat):
             #    print i, itm 
+            return self.calcSpeed((float(dat[3]), float(dat[2])))
             
         else:
             self.state = 0
@@ -61,4 +62,5 @@ with open('temp.txt') as f:
     # print f.readlines()
     
     for line in f:
-        wlPars.parsline(line.strip())
+        print line.strip(), str(wlPars.parsline(line.strip()))
+        
