@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import logging
+import os
 
 import SocketServer
 from threading import Thread
@@ -29,7 +30,17 @@ class service(SocketServer.BaseRequestHandler):
         
         # ta mot data til "." er motatt
         while len(data):
-            data = self.request.recv(1024)
+            
+            try:
+                data = self.request.recv(1024)
+            except Exception as e:
+                self.log.warning(str(e))
+                break
+            
+            if not data:
+                self.log.warning('Connection lost')
+                break
+            
             self.log.debug('> '+ data.rstrip())
 
 
@@ -57,8 +68,11 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 SocketServer.ThreadingTCPServer.allow_reuse_address = True
 # SocketServer.ThreadingTCPServer.timeout = 5
+port = 9999 #os.getenv('PORT', '8080')
+ip = '0.0.0.0' #os.getenv('IP', '0.0.0.0')
+print "Server on",  ip, port
 
-t = ThreadedTCPServer(('0.0.0.0',9999), service)
+t = ThreadedTCPServer((ip, port), service)
 
 # t.setDaemon(True)
 ip, port = t.server_address
