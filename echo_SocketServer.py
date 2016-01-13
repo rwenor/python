@@ -28,8 +28,14 @@ class service(SocketServer.BaseRequestHandler):
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     pass
 
+
+# *************************************
+#  Main
+
+
 SocketServer.ThreadingTCPServer.allow_reuse_address = True
-t = ThreadedTCPServer(('127.0.0.1',9998), service)
+t = ThreadedTCPServer(('0.0.0.0',9998), service)
+
 # t.setDaemon(True)
 ip, port = t.server_address
 print "Server on",  ip, port
