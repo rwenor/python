@@ -3,7 +3,7 @@ import thread
 
 BUFF = 1024
 HOST = '127.0.0.1'# must be input parameter @TODO
-PORT = 9998 # must be input parameter @TODO
+PORT = 9999 # must be input parameter @TODO
 
 def response(key):
     return 'Server response: ' + key
@@ -21,7 +21,7 @@ def handler(clientsock,addr):
 
     clientsock.close()
     print addr, "- closed connection" #log on console
-s
+
 if __name__=='__main__':
     ADDR = (HOST, PORT)
     serversock = socket(AF_INET, SOCK_STREAM)

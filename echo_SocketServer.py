@@ -27,7 +27,7 @@ class service(SocketServer.BaseRequestHandler):
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     pass
 
-t = ThreadedTCPServer(('127.0.0.1',9997), service)
+t = ThreadedTCPServer(('0.0.0.0',9997), service)
 # t.setDaemon(True)
 ip, port = t.server_address
 print "Server on",  ip, port
