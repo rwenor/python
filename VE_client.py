@@ -41,8 +41,9 @@ try:
     print '>', data,
 
     PTD("1000 linjer")
-    for i in range(1, 1000):
-        sock.sendall('VE test: ...DDD.s.ds.ds.ds.dsds::::::::...'+ str(i) +'\r\n')
+    for i in range(1, 2):
+        # sock.sendall('VE test: ...DDD.s.ds.ds.ds.dsds::::::::...'+ str(i) +'\r\n')
+        sock.sendall('VEPAS,3306,1460,0,ST,#5698D64BA887,1,3816,3794,4143,7335,7377,2,3845,0,393,977,715,3829,2633,194,916,651,100\r\n')
         data = recvLine(sock)
         print i,
         if i % 10 == 0:
