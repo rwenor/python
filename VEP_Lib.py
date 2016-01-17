@@ -1,7 +1,7 @@
 
 #import pymssql
-from ConfigParser import SafeConfigParser
 
+from ConfigParser import SafeConfigParser
 import MySQLdb
 import time
 

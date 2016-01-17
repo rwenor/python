@@ -34,9 +34,12 @@ print '\n'
 
 
 def AxTime(hex):
-    assert(hex[0]=='#')
-    return int(hex[1:], 16)/65535.0
-
+    if hex[0]=='#':
+        return int(hex[1:], 16)/65535.0
+    else:
+        print "Mangler #!: ", hex
+        return int(hex, 16)/65535.0
+    
 
 def sqlstr(s):
     return '"'+ str(s) + '"'
@@ -121,7 +124,7 @@ class VePars:
             dbAxs.commit()
         except:
             dbAxs.rollback()
-            print 'Rollback'
+            print 'Rollback:', vs
             raise
 
 vp = VePars()
@@ -184,7 +187,7 @@ class service(SocketServer.BaseRequestHandler):
                 
                 ret = '210 OK'
                 resCnt += 1
-                # print resCnt,
+                print "210 OK: ", resCnt,
             else:
                 ret = '410 ERROR'
 
