@@ -15,6 +15,11 @@ import time
 
 from datetime import datetime
 
+sLog = logging.getLogger('Server')
+fLog = sLog 
+logging.basicConfig(level=logging.DEBUG)
+
+
 cfg = SafeConfigParser()
 cfg.read('axs_serv.ini')
 host = cfg.get('axs_db', 'host')
@@ -27,8 +32,10 @@ dbAxs = None
 def axs_cursor():
     global dbAxs
     try:
+        sLog.debug('New db cursor')
         return dbAxs.cursor()
     except:
+        sLog.info('Db connecting: '+ host)
         dbAxs = MySQLdb.connect(host=host, user=user, passwd=passwd, db=db)
         return dbAxs.cursor()
     
@@ -54,6 +61,16 @@ def sqlstr(s):
     return '"'+ str(s) + '"'
 
 
+def addToVE(s):
+    with open("VE_ok.dat", "a") as myfile:
+        myfile.write(s)
+
+
+def addToFail(s):
+    with open("failVE.dat", "a") as myfile:
+        myfile.write(s)
+
+        
 class VePars:
 
     def __init__(self):
@@ -72,8 +89,8 @@ class VePars:
 
         self.ve = vs.strip().split(',')
 
-        for e in self.ve:
-            print e
+        # for e in self.ve:
+        #    print e
 
         assert self.ve[0] == 'VEPAS'
 
@@ -159,13 +176,16 @@ class service(SocketServer.BaseRequestHandler):
         conCount += 1
         totCon += 1
 
+        self.log.info('Tid: '+ str(datetime.now()) )
         self.log.info('Connected from '+ str(self.client_address) +' #'+ str(conCount) + ':'+ str(totCon))
             
         ret = '200 Connected from '+ str(self.client_address) +' #'+ str(conCount) + ':'+ str(totCon)
         self.log.debug('< '+ ret)
         self.request.send(ret + '\r\n')
 
+        # Get new cursor
         curAxs = axs_cursor()
+        
         # ta mot data til "." er motatt
         while len(data):
             
@@ -192,13 +212,18 @@ class service(SocketServer.BaseRequestHandler):
                 ret = '201 BYE'
             elif data[0] == 'V':
 
-
-                # Try
-                vp.pars(data)
+                try:
+                    vp.pars(data)
+                    addToVE(data)
+                    ret = '210 OK'
+                    resCnt += 1
+                    #print "210 OK: ", resCnt,
+                except Exception as ex:
+                    addToFail(data)
+                    print '*** Parse feil: ', ex
+                    ret = '410 ERROR'
                 
-                ret = '210 OK'
-                resCnt += 1
-                print "210 OK: ", resCnt,
+                
             else:
                 ret = '410 ERROR'
 
