@@ -7,6 +7,7 @@ from threading import Thread
 
 conCount = 0
 totCon = 0
+serverRun = True
 
 class service(SocketServer.BaseRequestHandler):
     def handle_timeout(self):
@@ -70,6 +71,9 @@ class service(SocketServer.BaseRequestHandler):
 
             # END ???
             if "." == data.rstrip():  break
+            if not serverRun:
+                self.log.info('Server stopped')
+                break
 
         # print "Client exited", self.client_address
         self.log.info("Client exit. VE_Cnt: "+ str(resCnt)) 
@@ -92,5 +96,11 @@ t = ThreadedTCPServer((ip, port), service)
 # t.setDaemon(True)
 ip, port = t.server_address
 print "Server on",  ip, port
-t.serve_forever()
+
+try:
+    t.serve_forever()
+except:
+    print "Stopping..."
+    serverRun = False
+    
 
