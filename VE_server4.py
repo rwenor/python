@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import logging
 import os
+import sys
 
 import SocketServer
 from threading import Thread
@@ -15,47 +16,63 @@ import time
 
 from datetime import datetime
 
+
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
 sLog = logging.getLogger('Server')
 fLog = sLog 
-logging.basicConfig(level=logging.DEBUG)
 
 
-cfg = SafeConfigParser()
-cfg.read('axs_serv.ini')
-host = cfg.get('axs_db', 'host')
-user = cfg.get('axs_db', 'user')
-passwd = cfg.get('axs_db', 'passwd')
-db = cfg.get('axs_db', 'db')
 
-dbAxs = MySQLdb.connect(host=host, user=user, passwd=passwd, db=db)
 
-def axs_cursor():
-    global dbAxs
+def axs_getdb():
+    cfg = SafeConfigParser()
+    cfg.read('axs_serv.ini')
+    return MySQLdb.connect(host=cfg.get('axs_db', 'host'),
+                                    user=cfg.get('axs_db', 'user'),
+                                    passwd=cfg.get('axs_db', 'passwd'),
+                                    db=cfg.get('axs_db', 'db'))
 
-    if not dbAxs.open:
-        sLog.debug('Trying to reconnect...')
-        dbAxs = MySQLdb.connect(host=host, user=user, passwd=passwd, db=db)
+def axs_cursor():   
+    #if not dbAxs.open:
+    #    sLog.debug('Connect...')
 
-        
-    try:
-        sLog.debug('New db cursor')
-        return dbAxs.cursor()
-    except:
-        sLog.info('FAIL Db connecting: '+ host)
-        dbAxs = MySQLdb.connect(host=host, user=user, passwd=passwd, db=db)
-        return dbAxs.cursor()
+    dbAxs = axs_getdb()
+
+    sLog.debug('New db cursor')
+    return dbAxs, dbAxs.cursor()
+
+
+def axs_close(dbAxs, curAxs):
+    sLog.debug('Close db')
+    curAxs.close()
+    dbAxs.close()
+
+
     
-curAxs = axs_cursor()
+db, cur = axs_cursor()
 
 qry = 'select count(*) from axs_vepas'
 print qry, ';'
-curAxs.execute(qry)
-for row in curAxs:
+cur.execute(qry)
+for row in cur:
     print row
 print '\n'
 
 sLog.info('Close connection')
-dbAxs.close()
+axs_close(db, cur)
+
+db, cur = axs_cursor()
+qry = 'select count(*) from axs_vepas'
+print qry, ';'
+cur.execute(qry)
+for row in cur:
+    print row
+print '\n'
+
+sLog.info('Close connection')
+axs_close(db, cur)
+
 
 def AxTime(hex):
     if hex[0]=='#':
@@ -92,8 +109,7 @@ class VePars:
         return s
 
 
-    def pars(self, vs):
-        #global
+    def pars(self, vs, dbAxs, curAxs, log):
 
         self.ve = vs.strip().split(',')
 
@@ -113,7 +129,7 @@ class VePars:
            +' (`AXSPEED_ID`,`VEPAS_TYPE`,`V_NR`,`LINJE_ID`, `DATOTID`, `AxTid`) values ' \
            +' ( '+ axNr +', "'+ sType +'", '+ vNr +', '+ lNr +', '+ sqlstr(tid) +', '+ str(axT) +' ) '
 
-        print sql
+        log.debug( sql )
         try:
             curAxs.execute(sql)
             vepas_id = curAxs.lastrowid
@@ -133,7 +149,7 @@ class VePars:
                    +' ) '
                 i = 6 + 6
 
-                print sql
+                log.debug( sql )
                 curAxs.execute(sql)
 
             else:
@@ -149,7 +165,7 @@ class VePars:
                     +' set ANT_A = '+ axCnt \
                     +' where axs_vepas_id = '+ str(vepas_id)
 
-                print sql
+                log.debug( sql )
                 curAxs.execute(sql)
 
                 for j in range(1, int(axCnt) + 1):
@@ -166,13 +182,15 @@ class VePars:
                         +' )'
                     i += 5
 
-                    print sql
+                    log.debug( sql )
                     curAxs.execute(sql)
 
             dbAxs.commit()
-        except:
+        except Exception as ex:                       
             dbAxs.rollback()
-            print 'Rollback:', vs
+            log.info( 'Rollback:'+ vs)
+
+            log.exception( str(ex) )
             raise
 
 vp = VePars()
@@ -185,28 +203,28 @@ class service(SocketServer.BaseRequestHandler):
     def handle(self):
         global conCount, totCon
         global vp
-        global curAxs
+
+        self.log = logging.getLogger(str(self.client_address))
+        logging.basicConfig(level=logging.DEBUG)
+        log = self.log
         
         data = 'dummy'
         resCnt = 0
 
         self.request.settimeout(15)
 
-        self.log = logging.getLogger(str(self.client_address))
-        logging.basicConfig(level=logging.DEBUG)
-
         conCount += 1
         totCon += 1
 
-        self.log.info('Connected from '+ str(self.client_address) +' #'+ str(conCount) + ':'+ str(totCon))
-        self.log.info('Tid: '+ str(datetime.now()) )
+        log.info('Connected from '+ str(self.client_address) +' #'+ str(conCount) + ':'+ str(totCon))
+        log.info('Tid: '+ str(datetime.now()) )
             
         ret = '200 Connected from '+ str(self.client_address) +' #'+ str(conCount) + ':'+ str(totCon)
-        self.log.debug('< '+ ret)
+        log.debug('< '+ ret)
         self.request.send(ret + '\r\n')
 
         # Get new cursor
-        curAxs = axs_cursor()
+        dbAxs, curAxs = axs_cursor()
         
         # ta mot data til "." er motatt
         while len(data):
@@ -219,14 +237,14 @@ class service(SocketServer.BaseRequestHandler):
                     #    print c, ord(c)
                     
             except Exception as e:
-                self.log.warning(str(e))
+                log.exception(str(e))
                 break
     
             if not data:
                 self.log.warning('Connection lost')
                 break
             
-            self.log.debug( str(resCnt) +'> '+ data.rstrip() +' -Len='+ str(len(data)))
+            log.debug( str(resCnt) +'> '+ data.rstrip() +' -Len='+ str(len(data)))
 
 
             # Handle request
@@ -235,14 +253,14 @@ class service(SocketServer.BaseRequestHandler):
             elif data[0] == 'V':
 
                 try:
-                    vp.pars(data)
+                    vp.pars(data, dbAxs, curAxs, log)
                     addToVE(data)
                     ret = '210 OK'
                     resCnt += 1
                     #print "210 OK: ", resCnt,
                 except Exception as ex:
                     addToFail(data)
-                    print '*** Parse feil: ', ex
+                    log.error('*** Parse feil: '+ str( ex ))
                     ret = '410 ERROR'
                 
                 
@@ -251,18 +269,20 @@ class service(SocketServer.BaseRequestHandler):
 
 
             if ret[:3] <> '210':
-                self.log.debug('< '+ ret)
+                log.debug('< '+ ret)
 
             self.request.send(ret + '\r\n')
 
             # END ???
             if "." == data.rstrip():  break
             if not serverRun:
-                self.log.info('Server stopped')
+                log.info('Server stopped')
                 break
 
         # print "Client exited", self.client_address
-        self.log.info("Client exit. VE_Cnt: "+ str(resCnt)) 
+        
+        axs_close(dbAxs, curAxs)
+        log.info("Client exit. VE_Cnt: "+ str(resCnt)) 
                       
         totCon -= 1
         self.request.close()
@@ -288,6 +308,3 @@ try:
 except:
     print "Stopping..."
     serverRun = False
-
-if dbAxs:
-    dbAxs.close()

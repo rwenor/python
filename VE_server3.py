@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import logging
 import os
+import sys
 
 import SocketServer
 from threading import Thread
@@ -15,47 +16,63 @@ import time
 
 from datetime import datetime
 
+
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
 sLog = logging.getLogger('Server')
 fLog = sLog 
-logging.basicConfig(level=logging.DEBUG)
 
 
-cfg = SafeConfigParser()
-cfg.read('axs_serv.ini')
-host = cfg.get('axs_db', 'host')
-user = cfg.get('axs_db', 'user')
-passwd = cfg.get('axs_db', 'passwd')
-db = cfg.get('axs_db', 'db')
 
-dbAxs = MySQLdb.connect(host=host, user=user, passwd=passwd, db=db)
 
-def axs_cursor():
-    global dbAxs
+def axs_getdb():
+    cfg = SafeConfigParser()
+    cfg.read('axs_serv.ini')
+    return MySQLdb.connect(host=cfg.get('axs_db', 'host'),
+                                    user=cfg.get('axs_db', 'user'),
+                                    passwd=cfg.get('axs_db', 'passwd'),
+                                    db=cfg.get('axs_db', 'db'))
 
-    if not dbAxs.open:
-        sLog.debug('Trying to reconnect...')
-        dbAxs = MySQLdb.connect(host=host, user=user, passwd=passwd, db=db)
+def axs_cursor():   
+    #if not dbAxs.open:
+    #    sLog.debug('Connect...')
 
-        
-    try:
-        sLog.debug('New db cursor')
-        return dbAxs.cursor()
-    except:
-        sLog.info('FAIL Db connecting: '+ host)
-        dbAxs = MySQLdb.connect(host=host, user=user, passwd=passwd, db=db)
-        return dbAxs.cursor()
+    dbAxs = axs_getdb()
+
+    sLog.debug('New db cursor')
+    return dbAxs, dbAxs.cursor()
+
+
+def axs_close(dbAxs, curAxs):
+    sLog.debug('Close db')
+    curAxs.close()
+    dbAxs.close()
+
+
     
-curAxs = axs_cursor()
+db, cur = axs_cursor()
 
 qry = 'select count(*) from axs_vepas'
 print qry, ';'
-curAxs.execute(qry)
-for row in curAxs:
+cur.execute(qry)
+for row in cur:
     print row
 print '\n'
 
 sLog.info('Close connection')
-dbAxs.close()
+axs_close(db, cur)
+
+db, cur = axs_cursor()
+qry = 'select count(*) from axs_vepas'
+print qry, ';'
+cur.execute(qry)
+for row in cur:
+    print row
+print '\n'
+
+sLog.info('Close connection')
+axs_close(db, cur)
+
 
 def AxTime(hex):
     if hex[0]=='#':
@@ -92,8 +109,7 @@ class VePars:
         return s
 
 
-    def pars(self, vs):
-        #global
+    def pars(self, vs, dbAxs, curAxs):
 
         self.ve = vs.strip().split(',')
 
@@ -185,7 +201,8 @@ class service(SocketServer.BaseRequestHandler):
     def handle(self):
         global conCount, totCon
         global vp
-        global curAxs
+
+        
         
         data = 'dummy'
         resCnt = 0
@@ -206,7 +223,7 @@ class service(SocketServer.BaseRequestHandler):
         self.request.send(ret + '\r\n')
 
         # Get new cursor
-        curAxs = axs_cursor()
+        dbAxs, curAxs = axs_cursor()
         
         # ta mot data til "." er motatt
         while len(data):
@@ -235,7 +252,7 @@ class service(SocketServer.BaseRequestHandler):
             elif data[0] == 'V':
 
                 try:
-                    vp.pars(data)
+                    vp.pars(data, dbAxs, curAxs)
                     addToVE(data)
                     ret = '210 OK'
                     resCnt += 1
@@ -262,6 +279,8 @@ class service(SocketServer.BaseRequestHandler):
                 break
 
         # print "Client exited", self.client_address
+        
+        axs_close(dbAxs, curAxs)
         self.log.info("Client exit. VE_Cnt: "+ str(resCnt)) 
                       
         totCon -= 1
@@ -288,6 +307,3 @@ try:
 except:
     print "Stopping..."
     serverRun = False
-
-if dbAxs:
-    dbAxs.close()
