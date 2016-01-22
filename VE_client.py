@@ -45,6 +45,9 @@ try:
     with open("ve.imp") as f:
         for line in f:
             # sock.sendall('VE test: ...DDD.s.ds.ds.ds.dsds::::::::...'+ str(i) +'\r\n')
+            if line.rstrip() == '':
+                continue
+
             print "> "+ line.rstrip()
             sock.sendall(line)
             data = recvLine(sock)
