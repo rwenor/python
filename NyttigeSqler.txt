@@ -1,0 +1,17 @@
+update axs_vepas 
+set Hast_mt_med = (select  if(linje_id % 2 = 1, -a_hast, a_hast) from axs_vepas_p 
+                   where axs_vepas_p.axs_vepas_id = axs_vepas.axs_vepas_id
+                         and axs_vepas_aksel_nr = 1
+                         and a_vekt > 100)
+where Hast_mt_med is null
+;
+  
+update axs_vepas 
+set Hast_mt_med = (select  if(linje_id % 2 = 1, -LF_H, LF_H) from axs_vepas_l
+                   where axs_vepas_l.axs_vepas_id = axs_vepas.axs_vepas_id)
+where Hast_mt_med is null;
+
+update axs_vepas 
+set Hast_mt_med = null
+where Hast_mt_med is not null and vepas_type = 'SN';
+
