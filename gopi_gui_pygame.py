@@ -57,8 +57,9 @@ def main():
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
     pygame.display.set_caption('GoPiGo - Gui')
     
-    ipAddr = 'rwe1814.asuscomm.com'
-    #ipAddr = 192.168.1.166'
+    #ipAddr = 'rwe1814.asuscomm.com'
+    #ipAddr = '192.168.1.166'
+    ipAddr = '192.168.1.93'
     cli = SmsTcpClient( "gui", ipAddr, 9999, False)
     rpc = SmsTcpClient( "gui-rpc", ipAddr, 9999, False)
 

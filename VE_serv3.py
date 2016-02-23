@@ -16,8 +16,14 @@ import time
 from datetime import datetime
 from VE_pars_db import VePars
 
+log_lev = logging.INFO
+if len(sys.argv) > 1:
+    if sys.argv[1] == '-s':
+        log_lev = logging.ERROR
+        print "Silent!"
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+
+logging.basicConfig(stream=sys.stdout, level=log_lev)
 
 sLog = logging.getLogger('Server')
 fLog = sLog 
@@ -44,7 +50,7 @@ class service(SocketServer.BaseRequestHandler):
         vp = VePars()
 
         self.log = logging.getLogger(str(self.client_address))
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=log_lev)
         log = self.log
         
         data = 'dummy'
