@@ -10,8 +10,6 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.backends.backend_agg as agg
 import pylab
- 
-
 
 
 FPS = 30
