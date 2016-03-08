@@ -109,12 +109,12 @@ class VePars:
         return s
 
 
-    def pars(self, vs, dbAxs, curAxs, log):
+    def pars(self, vs, dbAxs, curAxs):
 
         self.ve = vs.strip().split(',')
 
-        #for i, e in enumerate(self.ve):
-        #    print i ,': ', e
+        # for e in self.ve:
+        #    print e
 
         assert self.ve[0] == 'VEPAS'
 
@@ -129,7 +129,7 @@ class VePars:
            +' (`AXSPEED_ID`,`VEPAS_TYPE`,`V_NR`,`LINJE_ID`, `DATOTID`, `AxTid`) values ' \
            +' ( '+ axNr +', "'+ sType +'", '+ vNr +', '+ lNr +', '+ sqlstr(tid) +', '+ str(axT) +' ) '
 
-        log.debug( sql )
+        print sql
         try:
             curAxs.execute(sql)
             vepas_id = curAxs.lastrowid
@@ -149,7 +149,7 @@ class VePars:
                    +' ) '
                 i = 6 + 6
 
-                log.debug( sql )
+                print sql
                 curAxs.execute(sql)
 
             else:
@@ -159,12 +159,13 @@ class VePars:
             if sType in ['SP', 'ST']:
 
                 axCnt = self.ve[i+0]  # Axsler ant
-                i += 1
+
+
                 sql = 'update axs_vepas ' \
                     +' set ANT_A = '+ axCnt \
                     +' where axs_vepas_id = '+ str(vepas_id)
 
-                log.debug( sql )
+                print sql
                 curAxs.execute(sql)
 
                 for j in range(1, int(axCnt) + 1):
@@ -173,34 +174,21 @@ class VePars:
                         +' , A_HAST, A_AVST, A_VEKT, A_S1, A_S2 ) '\
                         +' values ' \
                         +' ( '+ str(vepas_id) +', '+ str(j) \
-                        +' , '+ self.ve[i+0]  \
                         +' , '+ self.ve[i+1]  \
                         +' , '+ self.ve[i+2]  \
                         +' , '+ self.ve[i+3]  \
                         +' , '+ self.ve[i+4]  \
+                        +' , '+ self.ve[i+5]  \
                         +' )'
                     i += 5
 
-                    log.debug( sql )
+                    print sql
                     curAxs.execute(sql)
 
-
-            
-            # log.debug( 'status: '+ str(i) ) # status );
-
-            status = self.ve[i]
-            sql = 'update axs_vepas ' \
-                    +' set status = '+ status \
-                    +' where axs_vepas_id = '+ str(vepas_id)
-            log.debug( sql )
-            curAxs.execute(sql)
-            
             dbAxs.commit()
-        except Exception as ex:                       
+        except:
             dbAxs.rollback()
-            log.info( 'Rollback:'+ vs)
-
-            log.exception( str(ex) )
+            print 'Rollback:', vs
             raise
 
 vp = VePars()
@@ -214,23 +202,24 @@ class service(SocketServer.BaseRequestHandler):
         global conCount, totCon
         global vp
 
-        self.log = logging.getLogger(str(self.client_address))
-        logging.basicConfig(level=logging.DEBUG)
-        log = self.log
+        
         
         data = 'dummy'
         resCnt = 0
 
         self.request.settimeout(15)
 
+        self.log = logging.getLogger(str(self.client_address))
+        logging.basicConfig(level=logging.DEBUG)
+
         conCount += 1
         totCon += 1
 
-        log.info('Connected from '+ str(self.client_address) +' #'+ str(conCount) + ':'+ str(totCon))
-        log.info('Tid: '+ str(datetime.now()) )
+        self.log.info('Connected from '+ str(self.client_address) +' #'+ str(conCount) + ':'+ str(totCon))
+        self.log.info('Tid: '+ str(datetime.now()) )
             
         ret = '200 Connected from '+ str(self.client_address) +' #'+ str(conCount) + ':'+ str(totCon)
-        log.debug('< '+ ret)
+        self.log.debug('< '+ ret)
         self.request.send(ret + '\r\n')
 
         # Get new cursor
@@ -247,14 +236,14 @@ class service(SocketServer.BaseRequestHandler):
                     #    print c, ord(c)
                     
             except Exception as e:
-                log.exception(str(e))
+                self.log.warning(str(e))
                 break
     
             if not data:
                 self.log.warning('Connection lost')
                 break
             
-            log.debug( str(resCnt) +'> '+ data.rstrip() +' -Len='+ str(len(data)))
+            self.log.debug( str(resCnt) +'> '+ data.rstrip() +' -Len='+ str(len(data)))
 
 
             # Handle request
@@ -263,37 +252,36 @@ class service(SocketServer.BaseRequestHandler):
             elif data[0] == 'V':
 
                 try:
-                    vp.pars(data, dbAxs, curAxs, log)
+                    vp.pars(data, dbAxs, curAxs)
                     addToVE(data)
                     ret = '210 OK'
                     resCnt += 1
                     #print "210 OK: ", resCnt,
                 except Exception as ex:
                     addToFail(data)
-                    log.error('*** Parse feil: '+ str( ex ))
+                    print '*** Parse feil: ', ex
                     ret = '410 ERROR'
                 
                 
             else:
-                addToFail(data)
                 ret = '410 ERROR'
 
 
             if ret[:3] <> '210':
-                log.debug('< '+ ret)
+                self.log.debug('< '+ ret)
 
             self.request.send(ret + '\r\n')
 
             # END ???
             if "." == data.rstrip():  break
             if not serverRun:
-                log.info('Server stopped')
+                self.log.info('Server stopped')
                 break
 
         # print "Client exited", self.client_address
         
         axs_close(dbAxs, curAxs)
-        log.info("Client exit. VE_Cnt: "+ str(resCnt)) 
+        self.log.info("Client exit. VE_Cnt: "+ str(resCnt)) 
                       
         totCon -= 1
         self.request.close()
@@ -304,7 +292,7 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 SocketServer.ThreadingTCPServer.allow_reuse_address = True
 # SocketServer.ThreadingTCPServer.timeout = 5
-port = 732 #os.getenv('PORT', '8080')
+port = 9998 #os.getenv('PORT', '8080')
 ip = '0.0.0.0' #os.getenv('IP', '0.0.0.0')
 #print "Server on",  ip, port
 

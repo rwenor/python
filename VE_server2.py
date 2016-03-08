@@ -27,15 +27,21 @@ user = cfg.get('axs_db', 'user')
 passwd = cfg.get('axs_db', 'passwd')
 db = cfg.get('axs_db', 'db')
 
-dbAxs = None
+dbAxs = MySQLdb.connect(host=host, user=user, passwd=passwd, db=db)
 
 def axs_cursor():
     global dbAxs
+
+    if not dbAxs.open:
+        sLog.debug('Trying to reconnect...')
+        dbAxs = MySQLdb.connect(host=host, user=user, passwd=passwd, db=db)
+
+        
     try:
         sLog.debug('New db cursor')
         return dbAxs.cursor()
     except:
-        sLog.info('Db connecting: '+ host)
+        sLog.info('FAIL Db connecting: '+ host)
         dbAxs = MySQLdb.connect(host=host, user=user, passwd=passwd, db=db)
         return dbAxs.cursor()
     
@@ -48,13 +54,15 @@ for row in curAxs:
     print row
 print '\n'
 
+sLog.info('Close connection')
+dbAxs.close()
 
 def AxTime(hex):
     if hex[0]=='#':
-        return int(hex[1:], 16)/65535.0
+        return int(hex[1:], 16)/65536.0
     else:
         print "Mangler #!: ", hex
-        return int(hex, 16)/65535.0
+        return int(hex, 16)/65536.0
     
 
 def sqlstr(s):
@@ -112,8 +120,22 @@ class VePars:
 
             if sType in ['SL', 'ST']:
                 i = 6
-
+                sql = 'insert into axs_vepas_l ' \
+                   +' (AXS_VEPAS_ID, ANT_V, LF_H,LE_H, L_L, LF_S, LE_S ) ' \
+                   +' values ' \
+                   +' ( '+ str(vepas_id) \
+                   +' , '+  self.ve[i+0]  \
+                   +' , '+  self.ve[i+1]  \
+                   +' , '+  self.ve[i+2]  \
+                   +' , '+  self.ve[i+3]  \
+                   +' , '+  self.ve[i+4]  \
+                   +' , '+  self.ve[i+5]  \
+                   +' ) '
                 i = 6 + 6
+
+                print sql
+                curAxs.execute(sql)
+
             else:
                 i = 6
 
@@ -176,8 +198,8 @@ class service(SocketServer.BaseRequestHandler):
         conCount += 1
         totCon += 1
 
-        self.log.info('Tid: '+ str(datetime.now()) )
         self.log.info('Connected from '+ str(self.client_address) +' #'+ str(conCount) + ':'+ str(totCon))
+        self.log.info('Tid: '+ str(datetime.now()) )
             
         ret = '200 Connected from '+ str(self.client_address) +' #'+ str(conCount) + ':'+ str(totCon)
         self.log.debug('< '+ ret)

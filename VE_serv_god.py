@@ -113,8 +113,8 @@ class VePars:
 
         self.ve = vs.strip().split(',')
 
-        #for i, e in enumerate(self.ve):
-        #    print i ,': ', e
+        # for e in self.ve:
+        #    print e
 
         assert self.ve[0] == 'VEPAS'
 
@@ -159,7 +159,8 @@ class VePars:
             if sType in ['SP', 'ST']:
 
                 axCnt = self.ve[i+0]  # Axsler ant
-                i += 1
+
+
                 sql = 'update axs_vepas ' \
                     +' set ANT_A = '+ axCnt \
                     +' where axs_vepas_id = '+ str(vepas_id)
@@ -173,28 +174,17 @@ class VePars:
                         +' , A_HAST, A_AVST, A_VEKT, A_S1, A_S2 ) '\
                         +' values ' \
                         +' ( '+ str(vepas_id) +', '+ str(j) \
-                        +' , '+ self.ve[i+0]  \
                         +' , '+ self.ve[i+1]  \
                         +' , '+ self.ve[i+2]  \
                         +' , '+ self.ve[i+3]  \
                         +' , '+ self.ve[i+4]  \
+                        +' , '+ self.ve[i+5]  \
                         +' )'
                     i += 5
 
                     log.debug( sql )
                     curAxs.execute(sql)
 
-
-            
-            # log.debug( 'status: '+ str(i) ) # status );
-
-            status = self.ve[i]
-            sql = 'update axs_vepas ' \
-                    +' set status = '+ status \
-                    +' where axs_vepas_id = '+ str(vepas_id)
-            log.debug( sql )
-            curAxs.execute(sql)
-            
             dbAxs.commit()
         except Exception as ex:                       
             dbAxs.rollback()
@@ -304,7 +294,7 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 SocketServer.ThreadingTCPServer.allow_reuse_address = True
 # SocketServer.ThreadingTCPServer.timeout = 5
-port = 732 #os.getenv('PORT', '8080')
+port = 9998 #os.getenv('PORT', '8080')
 ip = '0.0.0.0' #os.getenv('IP', '0.0.0.0')
 #print "Server on",  ip, port
 

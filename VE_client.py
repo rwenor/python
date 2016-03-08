@@ -31,7 +31,10 @@ PTD("Start")
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Connect the socket to the port where the server is listening
-server_address = ('rwe1814.asuscomm.com', 9998)
+server_address = ('127.0.0.1', 1732)
+#server_address = ('axspeed.datk.no', 1732)
+#server_address = ('192.168.10.71', 9998)
+
 print >>sys.stderr, 'connecting to %s port %s' % server_address
 sock.connect(server_address)
 
@@ -39,15 +42,22 @@ try:
     
     data = recvLine(sock)
     print '>', data,
+    i = 0
+    PTD("Fil linjer")
+    #for i in range(1, 2):
+    with open("ve.imp") as f:
+        for line in f:
+            # sock.sendall('VE test: ...DDD.s.ds.ds.ds.dsds::::::::...'+ str(i) +'\r\n')
+            if line.rstrip() == '':
+                continue
 
-    PTD("1000 linjer")
-    for i in range(1, 2):
-        # sock.sendall('VE test: ...DDD.s.ds.ds.ds.dsds::::::::...'+ str(i) +'\r\n')
-        sock.sendall('VEPAS,3306,1460,0,ST,#5698D64BA887,1,3816,3794,4143,7335,7377,2,3845,0,393,977,715,3829,2633,194,916,651,100\r\n')
-        data = recvLine(sock)
-        print i,
-        if i % 10 == 0:
-            print '*'
+            print "> "+ line.rstrip()
+            sock.sendall(line)
+            data = recvLine(sock)
+            print i, data
+            if i % 10 == 0:
+                print '*'
+            i += 1
 
     sock.sendall('.\r\n')
     data = recvLine(sock)

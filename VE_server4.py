@@ -272,6 +272,19 @@ class service(SocketServer.BaseRequestHandler):
                     addToFail(data)
                     log.error('*** Parse feil: '+ str( ex ))
                     ret = '410 ERROR'
+
+            elif data[0] == 'H':
+
+                try:
+                    # vp.pars(data, dbAxs, curAxs, log)
+                    addToVE(data)
+                    ret = '210 OK'
+                    resCnt += 1
+                    #print "210 OK: ", resCnt,
+                except Exception as ex:
+                    addToFail(data)
+                    log.error('*** Parse feil: '+ str( ex ))
+                    ret = '410 ERROR'
                 
                 
             else:
@@ -304,7 +317,7 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 SocketServer.ThreadingTCPServer.allow_reuse_address = True
 # SocketServer.ThreadingTCPServer.timeout = 5
-port = 732 #os.getenv('PORT', '8080')
+port = 9998 #os.getenv('PORT', '8080')
 ip = '0.0.0.0' #os.getenv('IP', '0.0.0.0')
 #print "Server on",  ip, port
 
