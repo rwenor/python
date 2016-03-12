@@ -26,44 +26,57 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script>
-      var socket = io();
-      $('form').submit(function(){
+
+    // Hjelpe funksjoner
+    function addMsgStr(msgs) {
+        $('#messages').append($('<li>').text(msgs));    
+    };      
+
+
+    // Form input  
+    var socket = io();
+    $('form').submit(function(){
         var obj = {user: $('#n').val(), msg: $('#m').val()};
 
         socket.emit('chat message', obj);
-        $('#messages').append(
-            $('<li>').text($('#m').val())
-        );
+        // $('#messages').append($('<li>').text($('#m').val()));
 
         $('#m').val('');
         return false;
-      });
+    });
 
-      $('#m').on('input', function(){
-           socket.emit('chat typer', $('#n').val()); 
-        }
-        );
+    $('#m').on('input', function(){
+       socket.emit('chat typer', {user:$('#n').val(), len: $('#m').val().length}); 
+    });
 
-      socket.on('chat display', function(msg){
-        $('#messages').append($('<li>').text(msg));
-      });
 
-      socket.on('chat message', function(msg){
-        $('#messages').append($('<li>').text('Hei');
-        obj = JSON.parse(msg);
-        $('#messages').append($('<li>').text(obj.user +': '+ obj.msg));
-      });
+    // Socket input
+    socket.on('chat display', addMsgStr);
 
-      socket.on('chat typer', function(msg){
-        elm = $('#'+ msg )
+    socket.on('chat message', function(msg){
+        //console.log('Hei');
+        addMsgStr(msg.user +': '+ msg.msg);
+
+        // Fjern "typer"
+        $('#'+ msg.user ).remove();
+    });
+
+    socket.on('chat all', function(msgAll){
+        console.log('chat all');
+        
+        for (msg of msgAll) {
+            addMsgStr(msg.user +': '+ msg.msg);
+        };
+    });
+
+    socket.on('chat typer', function(msg){
+        elm = $('#'+ msg.user )
         if (elm.length == 0) {
-            $('#typers').append($('<li id="'+ msg +'">').text('T-'+ msg));
-        } 
-        else {
-            
+            $('#typers').append($('<li id="'+ msg.user +'">').text(msg.user +' is typing: '+ msg.len));
+        } else {
+            elm.text(msg.user +' is typing: '+ msg.len);
         }
-
-      });
+    });
 
     </script>
   </body>
