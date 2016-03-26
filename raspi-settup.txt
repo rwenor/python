@@ -1,0 +1,260 @@
+Linux oppsett og vedlikehold
+
+
+Googel: linux mint after install
+
+=> http://www.binarytides.com/better-linux-mint-17-cinnamon/
+
+
+Oppsett første gang
+
+sudo apt-get update
+sudo apt-get upgrade
+
+Pi:
+sudo apt-get update
+sudo apt-get dist-upgrade
+sudo rpi-update
+sudo reboot
+
+
+Install Chrome (flash support)
+
+Multimedia:
+$ sudo apt-get install ubuntu-restricted-extras
+$ sudo apt-get install libdvdread4
+$ sudo /usr/share/doc/libdvdread4/install-css.sh
+
+
+Div inet
+
+sudo apt-get install dropbox python-gpgme
+
+-
+sudo apt-get install skype
+sudo apt-get install unace p7zip-rar sharutils rar arj lunzip lzip
+
+
+sudo add-apt-repository "deb http://archive.canonical.com/ $(lsb_release -sc) partner"
+sudo apt-get update 
+sudo apt-get install skype
+
+
+Fonts
+
+http://www.binarytides.com/optimize-fonts-linux-mint/
+
+
+BASH
+
+osx: 
+	export PS1="\h \w $ "
+Til ~/.bash_profile
+
+
+VNC
+
+Mac?: open vnc://<host>:<port>
+
+
+UNITY
+
+The simplest and IMHO the best way to achieve this on Ubuntu 12.10 and above is (didn't test it on 12.04 and below):
+sudoedit /usr/share/X11/xorg.conf.d/50-synaptics.conf
+
+
+add those lines in the Section "InputClass"
+Option "VertScrollDelta" "-111"
+Option "HorizScrollDelta" "-111"
+
+
+reboot and have fun with natural scrolling :)
+If you want to try your settings without reboot, you can use synclient
+synclient VertScrollDelta=-111
+synclient HorizScrollDelta=-111
+
+
+The changes are immediately applied, but won't stay after reboot if you don't add them in 50-synaptics-conf file.
+
+TEMPSENSOR mm.
+
+sudo apt-add-repository ppa:jfi/ppa
+sudo apt-get update
+sudo apt-get install psensor
+
+
+HW
+
+sudo apt-get install hardinfo
+
+
+Annen desktop
+
+sudo apt-get install mint-meta-mate
+
+Terminal ???
+sudo apt-get install guake
+
+Hvor?
+which guake
+
+settings > startup programs and click Add
+
+
+--
+Light task man
+
+$ sudo apt-add-repository -y ppa:teejee2008/ppa
+$ sudo apt-get update
+
+
+????
+$ sudo apt-get install conky-manager
+
+Games
+
+# 0ad - strategy game like age of empires
+$ aptitude search 0ad
+
+# supertuxkart - car racing game
+$ aptitude search supertuxkart
+
+# openarena
+$ aptitude search openarena
+
+
+
+Virtualbox
+Slå på copy/past (General->Advanced)
+
+Raspi Web
+http://www.dronkert.net/rpi/webcam.html
+sudo apt-get install lighttpd php5-cgi php5-gd
+Service:
+sudo chmod 755 /etc/init.d/webcam
+sudo update-rc.d webcam defaults 99 01
+sudo reboot
+sudo service webcam start
+sudo service webcam stop
+
+sudo service webcam disable  ## Virker ikke???? 30/11-15
+sudo update-rc.d -f webcam remove ## virker på raspif
+
+Div benchmark
+Rask test
+hdparm -tT /dev/sda
+Skrive og lese 2G, filnavn: test
+dd if=/dev/zero of=test bs=1048576 count=2048
+dd if=test of=/dev/null bs=1048576
+
+Div nyttig
+ps ux | grep <søk>	
+killall
+top
+ grep -r --include "*.py"  unittest .
+
+
+ln -s /Applications/TextMate.app/Contents/Resources/mate ~/mate
+
+
+
+Deamon skript (http://www.dronkert.net/rpi/webcam.html)
+Copy this or download it and save as /etc/init.d/webcam:
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:		webcam
+# Required-Start:	$remote_fs $syslog
+# Required-Stop:	$remote_fs $syslog
+# Default-Start:	2 3 4 5
+# Default-Stop:		0 1 6
+# Short-Description:	Control raspistill
+# Description:		Control raspistill camera time lapse
+#			and save images to RAM disk.
+### END INIT INFO
+
+BIN="raspistill"
+EXE="/usr/bin/$BIN"
+[ -x "$EXE" ] || exit 0
+
+SCR="webcam"   # script / service name
+ARG="-n -w 800 -h 600 -t 2147483647 -tl 5000 -o /run/shm/$SCR.jpg"
+LCK="/var/run/$SCR.pid"   # lock file location
+
+update_lockfile() {
+	PID=$(pgrep "$BIN")
+	if [ -z "$PID" ]; then
+		[ -f "$LCK" ] && [ -w "$LCK" ] && rm -f "$LCK"
+	else
+		[ -e "$LCK" ] || touch "$LCK"
+		[ -f "$LCK" ] && [ -w "$LCK" ] && echo "$PID" > "$LCK"
+	fi
+}
+
+do_start() {
+	$EXE $ARG &
+	update_lockfile
+}
+
+do_stop() {
+	killall -q "$BIN"
+	update_lockfile
+}
+
+case "$1" in
+	status)
+		echo -n "Service $SCR is "
+		update_lockfile
+		if [ -z "$PID" ]; then
+			echo "not running." >&2
+			exit 3
+		else
+			echo "running."
+		fi
+		;;
+	start)
+		echo -n "Starting service $SCR..."
+		update_lockfile
+		if [ -n "$PID" ]; then
+			echo "already started." >&2
+			exit 4
+		else
+			do_start
+			echo "done."
+		fi
+		;;
+	stop)
+		echo -n "Stopping service $SCR..."
+		update_lockfile
+		if [ -z "$PID" ]; then
+			echo "already stopped." >&2
+			exit 5
+		else
+			do_stop
+			echo "done."
+		fi
+		;;
+	restart|force-reload)
+		echo -n "Restarting service $SCR..."
+		do_stop
+		if [ -n "$PID" ]; then
+			echo "failed to stop." >&2
+			exit 6
+		else
+			do_start
+			if [ -z "$PID" ]; then
+				echo "failed to start." >&2
+				exit 7
+			else
+				echo "done."
+			fi
+		fi
+		;;
+	*)
+		echo "Usage: $0 {status|start|stop|restart|force-reload}" >&2
+		exit 8
+		;;
+esac
+exit 0
+
+
+
