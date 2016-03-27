@@ -17,6 +17,10 @@ sudo apt-get dist-upgrade
 sudo rpi-update
 sudo reboot
 
+VNC:
+sudo apt-get install tightvncserver
+tightvncserver
+vncserver :1 -geometry 1440x900 -depth 24
 
 Install Chrome (flash support)
 
