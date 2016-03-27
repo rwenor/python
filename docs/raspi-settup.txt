@@ -22,6 +22,32 @@ sudo apt-get install tightvncserver
 tightvncserver
 vncserver :1 -geometry 1440x900 -depth 24
 
+
+Pi div prog:
+
+NODE:
+sudo apt-get install nodejs-legacy npm
+sudo npm install -g n      		# For å få nyeste node
+sudo n stable
+
+blt:
+npm install noble
+
+bluez:
+tar xvf bluez-5.37.tar.xz
+./configure
+sudo apt-get install libdbus-1-dev
+sudo apt-get install libudev-dev
+sudo apt-get install libreadline-dev
+
+apt-cache search libglib
+sudo apt-get install libglib2.0-dev
+make
+sudo make install
+
+sudo bluetoothctl
+
+
 Install Chrome (flash support)
 
 Multimedia:
@@ -40,7 +66,7 @@ sudo apt-get install unace p7zip-rar sharutils rar arj lunzip lzip
 
 
 sudo add-apt-repository "deb http://archive.canonical.com/ $(lsb_release -sc) partner"
-sudo apt-get update 
+sudo apt-get update
 sudo apt-get install skype
 
 
@@ -51,7 +77,7 @@ http://www.binarytides.com/optimize-fonts-linux-mint/
 
 BASH
 
-osx: 
+osx:
 	export PS1="\h \w $ "
 Til ~/.bash_profile
 
@@ -152,7 +178,7 @@ dd if=/dev/zero of=test bs=1048576 count=2048
 dd if=test of=/dev/null bs=1048576
 
 Div nyttig
-ps ux | grep <søk>	
+ps ux | grep <søk>
 killall
 top
  grep -r --include "*.py"  unittest .
@@ -259,6 +285,3 @@ case "$1" in
 		;;
 esac
 exit 0
-
-
-
