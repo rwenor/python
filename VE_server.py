@@ -304,7 +304,7 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 SocketServer.ThreadingTCPServer.allow_reuse_address = True
 # SocketServer.ThreadingTCPServer.timeout = 5
-port = 9998 #os.getenv('PORT', '8080')
+port = 732 #os.getenv('PORT', '8080')
 ip = '0.0.0.0' #os.getenv('IP', '0.0.0.0')
 #print "Server on",  ip, port
 
