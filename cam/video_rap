@@ -1,0 +1,6 @@
+# nc 192.168.1.166 8000 | mplayer  -fps 24 -cache 512 -
+# cat video_resv | nc rwe1814.asuscomm.com 8002
+
+nc rwe1814.asuscomm.com 8002
+sleep 2
+nc rwe1814.asuscomm.com 8002 | mplayer  -fps 24 -cache 512 -
