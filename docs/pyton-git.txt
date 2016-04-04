@@ -1,0 +1,76 @@
+Git og Python mm. (rwe 2015-11-11)
+
+Git
+git clone https://github.com/rwenor/python.git
+
+
+git init
+
+  git config --global user.email "rwenor1@icloud.com"
+  git config --global user.name "Rolf MBA-Mint"
+  git config --global core.editor nano
+  git config --list
+
+git status
+git add <file>
+git add .
+
+git commit -m “melding”
+
+git help
+
+
+Python
+sudo apt-get install python-matplotlib
+sudo apt-get install python-django
+sudo apt-get install python-tk
+sudo apt-get install python-imaging-tk
+
+python -m SimpleHTTPServer 8000
+
+Python-Mac (https://hackercodex.com/guide/python-development-environment-on-mac-osx/)
+
+xcode commandlines tools 
+sudo easy_install pip
+sudo pip install virtualenv
+Flask
+pip install flask
+pip install flask-mysql
+sudo apt-get install libmysqlclient-dev
+
+GUI
+
+Spyder (Mint)
+Setting:
+Tools->Pref->Syntax color->[Spyder] Current line #b2deff
+Run->Configure Command line option
+
+
+
+Eric python
+Ser grei ut har debuger
+Code completion
+
+
+SSH mm.
+
+ssh pi@rwe1814.asuscomm.com -L 5901:localhost:5901
+
+rsync -rvz -e 'ssh -p 2222' pi@axspeed.datk.no:/home/pi/test_rsync ~/test_rsync/
+rsync -rvz -e 'ssh -p 2222' pi@axspeed.datk.no:/var/www ~/test_rsync/www
+rsync -rvz -e 'ssh -p 2222' pi@axspeed.datk.no:/home/pi/python ~/test_rsync/python
+
+scp -pw **** rolf@10.77.2.3:./AxServer/*.py ./Axspeed
+
+
+PHP
+
+Start server: 
+php -S 127.0.0.1:8000 -t .
+
+
+Div kommandoer
+
+du -h : disk bruk i dir
+ grep -r --include "*.py"  unittest .
+

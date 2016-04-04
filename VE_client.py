@@ -31,8 +31,9 @@ PTD("Start")
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Connect the socket to the port where the server is listening
-server_address = ('axspeed.datk.no', 1732)
-#server_address = ('192.168.10.71', 9998)
+
+server_address = ('127.0.0.1', 1732)
+#server_address = ('axspeed.datk.no', 1732)
 
 print >>sys.stderr, 'connecting to %s port %s' % server_address
 sock.connect(server_address)

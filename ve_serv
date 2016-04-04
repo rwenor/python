@@ -1,0 +1,102 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:		webcam
+# Required-Start:	$remote_fs $syslog
+# Required-Stop:	$remote_fs $syslog
+# Default-Start:	2 3 4 5
+# Default-Stop:		0 1 6
+# Short-Description:	Control ve_serv
+# Description:		Control ve_serv
+#			
+### END INIT INFO
+
+
+BIN="VE_serv3.py"
+EXE="/home/rolf/python/$BIN"
+
+# 
+cd /home/rolf/python
+
+[ -x "$EXE" ] || exit 0
+
+# echo "$EXE"
+
+SCR="ve_serv"   # script / service name
+ARG="-s"
+LCK="/var/run/$SCR.pid"   # lock file location
+
+update_lockfile() {
+	PID=$(pgrep -f "$BIN")
+	if [ -z "$PID" ]; then
+		[ -f "$LCK" ] && [ -w "$LCK" ] && rm -f "$LCK"
+	else
+		[ -e "$LCK" ] || touch "$LCK"
+		[ -f "$LCK" ] && [ -w "$LCK" ] && echo "$PID" > "$LCK"
+	fi
+}
+
+do_start() {
+	$EXE $ARG &
+	update_lockfile
+}
+
+do_stop() {
+	kill -9 "$PID"
+	update_lockfile
+}
+
+case "$1" in
+	status)
+		echo -n "Service $SCR is "
+		update_lockfile
+		if [ -z "$PID" ]; then
+			echo "not running." >&2
+			exit 3
+		else
+			echo "running."
+		fi
+		;;
+	start)
+		echo -n "Starting service $SCR..."
+		update_lockfile
+		if [ -n "$PID" ]; then
+			echo "already started." >&2
+			exit 4
+		else
+			do_start
+			echo "done."
+		fi
+		;;
+	stop)
+		echo -n "Stopping service $SCR..."
+		update_lockfile
+		if [ -z "$PID" ]; then
+			echo "already stopped." >&2
+			exit 5
+		else
+			do_stop
+			echo "done."
+		fi
+		;;
+	restart|force-reload)
+		echo -n "Restarting service $SCR..."
+		do_stop
+		if [ -n "$PID" ]; then
+			echo "failed to stop." >&2
+			exit 6
+		else
+			do_start
+			if [ -z "$PID" ]; then
+				echo "failed to start." >&2
+				exit 7
+			else
+				echo "done."
+			fi
+		fi
+		;;
+	*)
+		echo "Usage: $0 {status|start|stop|restart|force-reload}" >&2
+		exit 8
+		;;
+esac
+exit 0

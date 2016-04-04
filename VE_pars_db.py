@@ -13,16 +13,13 @@ serverRun = True
 from ConfigParser import SafeConfigParser
 import MySQLdb
 import time
-
 from datetime import datetime
 
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 sLog = logging.getLogger('Server')
 fLog = sLog 
-
-
 
 
 def axs_getdb():
@@ -36,9 +33,7 @@ def axs_getdb():
 def axs_cursor():   
     #if not dbAxs.open:
     #    sLog.debug('Connect...')
-
     dbAxs = axs_getdb()
-
     sLog.debug('New db cursor')
     return dbAxs, dbAxs.cursor()
 
@@ -48,8 +43,8 @@ def axs_close(dbAxs, curAxs):
     curAxs.close()
     dbAxs.close()
 
-
     
+'''
 db, cur = axs_cursor()
 
 qry = 'select count(*) from axs_vepas'
@@ -61,18 +56,7 @@ print '\n'
 
 sLog.info('Close connection')
 axs_close(db, cur)
-
-db, cur = axs_cursor()
-qry = 'select count(*) from axs_vepas'
-print qry, ';'
-cur.execute(qry)
-for row in cur:
-    print row
-print '\n'
-
-sLog.info('Close connection')
-axs_close(db, cur)
-
+'''
 
 def AxTime(hex):
     if hex[0]=='#':
@@ -86,21 +70,43 @@ def sqlstr(s):
     return '"'+ str(s) + '"'
 
 
-def addToVE(s):
-    with open("VE_ok.dat", "a") as myfile:
-        myfile.write(s)
+# time of last list
+tol_3305 = -1
+myTolList = {}
 
-
-def addToFail(s):
-    with open("failVE.dat", "a") as myfile:
-        myfile.write(s)
-
+def getTol(axnr, lnr):
+    try:
+        res = myTolList[axnr][lnr]
+            
+    except:
+        res = setTol(axnr, lnr, 0)
         
+    return res
+    
+def setTol(axnr, lnr, val):
+    try:
+        myTolList[axnr][lnr] = val
+            
+    except:    
+        myTolList[axnr] = [0,0,0,0, 0,0,0,0]
+        myTolList[axnr][lnr] = val
+        
+    return val
+
+# VePars  -  Parser og registrerer i db
 class VePars:
 
     def __init__(self):
         self.i = 0
+
+        # Get new cursor
+        self.dbAxs, self.curAxs = axs_cursor()
         pass
+
+    def closeDb(self):
+        axs_close(self.dbAxs, self.curAxs)
+        del self.dbAxs
+        del self.curAxs
 
     @property
     def nextWord(self):
@@ -109,9 +115,13 @@ class VePars:
         return s
 
 
-    def pars(self, vs, dbAxs, curAxs, log):
+    def pars_vepas(self, vs, log):
+        global tol_3305
 
         self.ve = vs.strip().split(',')
+
+        dbAxs = self.dbAxs
+        curAxs = self.curAxs
 
         #for i, e in enumerate(self.ve):
         #    print i ,': ', e
@@ -125,9 +135,18 @@ class VePars:
         axT = AxTime(self.ve[5])
         tid = datetime.fromtimestamp(axT)
 
+        tol = getTol(int(axNr), int(lNr))
+        if tol == 0:
+            td = 1000000
+        else:
+            td = (axT - tol)*1000.0
+
+        setTol(int(axNr), int(lNr), axT)
+        hast = 0
+
         sql =  'insert into axs_vepas ' \
-           +' (`AXSPEED_ID`,`VEPAS_TYPE`,`V_NR`,`LINJE_ID`, `DATOTID`, `AxTid`) values ' \
-           +' ( '+ axNr +', "'+ sType +'", '+ vNr +', '+ lNr +', '+ sqlstr(tid) +', '+ str(axT) +' ) '
+           +' (`AXSPEED_ID`,`VEPAS_TYPE`,`V_NR`,`LINJE_ID`, `DATOTID`, `AxTid`, Tsl_ms) values ' \
+           +' ( '+ axNr +', "'+ sType +'", '+ vNr +', '+ lNr +', '+ sqlstr(tid) +', '+ str(axT) +', '+ str(td) +' ) '
 
         log.debug( sql )
         try:
@@ -147,6 +166,8 @@ class VePars:
                    +' , '+  self.ve[i+4]  \
                    +' , '+  self.ve[i+5]  \
                    +' ) '
+
+                hast = int(self.ve[i+2])
                 i = 6 + 6
 
                 log.debug( sql )
@@ -167,6 +188,7 @@ class VePars:
                 log.debug( sql )
                 curAxs.execute(sql)
 
+                hast = int(self.ve[i+0]) # kun forste aksel
                 for j in range(1, int(axCnt) + 1):
                     sql = 'insert into axs_vepas_p ' \
                         +' (AXS_VEPAS_ID, AXS_VEPAS_AKSEL_NR ' \
@@ -184,13 +206,15 @@ class VePars:
                     log.debug( sql )
                     curAxs.execute(sql)
 
-
-            
             # log.debug( 'status: '+ str(i) ) # status );
+
+            if (int(lNr) % 2) == 1:
+                hast = -hast
 
             status = self.ve[i]
             sql = 'update axs_vepas ' \
                     +' set status = '+ status \
+		            +' , Hast_mt_med = '+ str(hast) \
                     +' where axs_vepas_id = '+ str(vepas_id)
             log.debug( sql )
             curAxs.execute(sql)
@@ -203,119 +227,44 @@ class VePars:
             log.exception( str(ex) )
             raise
 
-vp = VePars()
+
+if __name__ == '__main__':
+    # Test
+    import unittest
 
 
-class service(SocketServer.BaseRequestHandler):
-    def handle_timeout(self):
-        print 'Timeout ...'
+    class Test_VE_pars(unittest.TestCase):
 
-    def handle(self):
-        global conCount, totCon
-        global vp
+        def setUp(self):
+            print 'In setUp()'
+            self.vep = VePars()
+            self.log = logging.getLogger('Test')
+            logging.basicConfig(level=logging.INFO)
 
-        self.log = logging.getLogger(str(self.client_address))
-        logging.basicConfig(level=logging.DEBUG)
-        log = self.log
-        
-        data = 'dummy'
-        resCnt = 0
-
-        self.request.settimeout(15)
-
-        conCount += 1
-        totCon += 1
-
-        log.info('Connected from '+ str(self.client_address) +' #'+ str(conCount) + ':'+ str(totCon))
-        log.info('Tid: '+ str(datetime.now()) )
-            
-        ret = '200 Connected from '+ str(self.client_address) +' #'+ str(conCount) + ':'+ str(totCon)
-        log.debug('< '+ ret)
-        self.request.send(ret + '\r\n')
-
-        # Get new cursor
-        dbAxs, curAxs = axs_cursor()
-        
-        # ta mot data til "." er motatt
-        while len(data):
-            
-            try:
-                data = ''
-                while data[-1:] <> '\n':
-                    data += self.request.recv(1024)
-                    #for c in data[-2:]:
-                    #    print c, ord(c)
-                    
-            except Exception as e:
-                log.exception(str(e))
-                break
-    
-            if not data:
-                self.log.warning('Connection lost')
-                break
-            
-            log.debug( str(resCnt) +'> '+ data.rstrip() +' -Len='+ str(len(data)))
+        def tearDown(self):
+            print 'In tearDown()'
+            self.vep.closeDb()
+            del self.vep
+            del self.log
 
 
-            # Handle request
-            if "." == data.rstrip():
-                ret = '201 BYE'
-            elif data[0] == 'V':
+        def test_RegName(self):
+            print '\nRegName sm_serv'
+            data = 'ACK'
+            self.assertEqual(data, 'ACK')
 
-                try:
-                    vp.pars(data, dbAxs, curAxs, log)
-                    addToVE(data)
-                    ret = '210 OK'
-                    resCnt += 1
-                    #print "210 OK: ", resCnt,
-                except Exception as ex:
-                    addToFail(data)
-                    log.error('*** Parse feil: '+ str( ex ))
-                    ret = '410 ERROR'
-                
-                
-            else:
-                addToFail(data)
-                ret = '410 ERROR'
+        def test_Test_SP(self):
+            self.vep.pars_vepas('VEPAS,3208,482444,2,SP,#56B3424A4A57,2,4235,0,663,123,129,4191,2722,666,124,129,96', self.log)
+
+        def test_Test_SL(self):
+            self.vep.pars_vepas('VEPAS,3305,809828,1,SL,#56B33C5C5EFD,1,3811,3914,4030,8208,7511,100', self.log)
+
+        def test_Test_ST(self):
+            self.vep.pars_vepas('VEPAS,3305,809831,0,ST,#56B33C7B3C80,1,3956,4015,3934,5300,5249,2,3951,0,603,2145,1128,3962,2564,599,2034,1010,100', self.log)
+
+        def test_Test_SN(self):
+            self.vep.pars_vepas('VEPAS,3199,925521,1,SN,56B340FFEFA9,0', self.log)
 
 
-            if ret[:3] <> '210':
-                log.debug('< '+ ret)
-
-            self.request.send(ret + '\r\n')
-
-            # END ???
-            if "." == data.rstrip():  break
-            if not serverRun:
-                log.info('Server stopped')
-                break
-
-        # print "Client exited", self.client_address
-        
-        axs_close(dbAxs, curAxs)
-        log.info("Client exit. VE_Cnt: "+ str(resCnt)) 
-                      
-        totCon -= 1
-        self.request.close()
-
-
-class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
-    pass
-
-SocketServer.ThreadingTCPServer.allow_reuse_address = True
-# SocketServer.ThreadingTCPServer.timeout = 5
-port = 732 #os.getenv('PORT', '8080')
-ip = '0.0.0.0' #os.getenv('IP', '0.0.0.0')
-#print "Server on",  ip, port
-
-t = ThreadedTCPServer((ip, port), service)
-
-# t.setDaemon(True)
-ip, port = t.server_address
-print "Server on",  ip, port
-
-try:
-    t.serve_forever()
-except:
-    print "Stopping..."
-    serverRun = False
+    # Run testcase
+    unittest.main()
