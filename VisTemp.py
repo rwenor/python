@@ -38,7 +38,8 @@ for o, a in opts:
             param2 = "Bad - gulv"
             humStart = 20
     elif o in ('-d', '--days'):
-            dayNr = int(a)
+        print a
+        dayNr = int(a)
 
 data1 = []
 data2 = []
@@ -79,7 +80,8 @@ with open(loadFile, 'r') as f:
 pl.xticks(rotation=70)
 pl.plot_date(date1[-6*24*dayNr:], data1[-6*24*dayNr:], '-')
 pl.plot_date(date2[-6*24*dayNr:], data2[-6*24*dayNr:], '-')
-pl.plot_date(date3[-6*24*dayNr:], data3[-6*24*dayNr:], '-')
+if param2 != "Bad - gulv":
+    pl.plot_date(date3[-6*24*dayNr:], data3[-6*24*dayNr:], '-')
 
 #print date2
 
