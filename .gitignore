@@ -5,10 +5,10 @@
 *.log
 *.h264
 *.bak
-<<<<<<< HEAD
+node_modules/
 =======
 *.dsk
 *.~dsk
->>>>>>> a21082fe807d2cb75a32300c1fac8ac7a72acad0
+
 __pycache__
 Thumbs.db
