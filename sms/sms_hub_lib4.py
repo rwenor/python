@@ -23,7 +23,9 @@ def nowstr():
 def Disp_sm_SetName(name):
     servName = name
 
-
+# 3: len(msg) 
+# rest: msg
+#
 def send_sm(con, msg):
     if (len(msg) <= 200):
         msg = str(len(msg)).zfill(3) + msg
