@@ -34,9 +34,16 @@ def send_sm(con, msg):
 
 
 def recv_sm(con):
-    l = int(con.recv(3))
+    try:
+        l = int(con.recv(3))
+        return con.recv(l)
+    except Exception as e: 
+        deb(e)
+        pass
 
-    return con.recv(l)
+    # Exception ocurred
+    return ''
+    
 
 
 def Disp_sm_serv(fra, til, data, con, serv):
