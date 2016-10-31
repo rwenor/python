@@ -23,7 +23,9 @@ def nowstr():
 def Disp_sm_SetName(name):
     servName = name
 
-
+# 3: len(msg) 
+# rest: msg
+# msg = from to data (separated by tab)
 def send_sm(con, msg):
     if (len(msg) <= 200):
         msg = str(len(msg)).zfill(3) + msg
@@ -34,9 +36,16 @@ def send_sm(con, msg):
 
 
 def recv_sm(con):
-    l = int(con.recv(3))
+    try:
+        l = int(con.recv(3))
+        return con.recv(l)
+    except Exception as e: 
+        deb(e)
+        pass
 
-    return con.recv(l)
+    # Exception ocurred
+    return ''
+    
 
 
 def Disp_sm_serv(fra, til, data, con, serv):
@@ -427,9 +436,10 @@ class test_con:
 if __name__ == '__main__':
     # Test
     import unittest
+    testPort = 9876
 
 
-    class TestStringMethods(unittest.TestCase):
+    class TestStringMethods (unittest.TestCase):
 
         def test_RegName(self):
             print '\nRegName sm_serv'
@@ -468,15 +478,15 @@ if __name__ == '__main__':
 
                 # self.assertEqual(sm_wait['test'], None)
 
-        def test_server_client(self):
-            serv = SmsTcpServer("Serv", '', 9999)
+        def xtest_server_client(self):
+            serv = SmsTcpServer("Serv", '', testPort)
             t = threading.Thread(target=serv.run_server, args=())
             t.start()
 
             time.sleep(1)
 
             serv.running = False  # Stop server
-            cli = SmsTcpClient("cli", '127.0.0.1', 9999)
+            cli = SmsTcpClient("cli", '127.0.0.1', testPort)
             time.sleep(1)
 
             cli.send('test')
@@ -496,14 +506,14 @@ if __name__ == '__main__':
             serv.close()
             # self.assertEqual('test1', msg)
 
-        def test_server_client(self):
-            serv = SmsTcpServer("Serv-test", '', 9999)
+        def xtest_server_client(self):
+            serv = SmsTcpServer("Serv-test", '', testPort)
             t = threading.Thread(target=serv.run_server, args=())
             t.start()
 
             time.sleep(1)
 
-            cli = SmsTcpClient("cli-test", '127.0.0.1', 9999)
+            cli = SmsTcpClient("cli-test", '127.0.0.1', testPort)
             time.sleep(1)
 
             cli.sendSM('test', 'Serv.ListCli', '.')
