@@ -12,9 +12,9 @@ PrintTimeCnt = 0
 def PTD(str):
     global PrintTimeDiffLast
     global PrintTimeCnt
-    print 'PTD%4s: %6s - %s' %  (PrintTimeCnt, \
+    print('PTD%4s: %6s - %s' %  (PrintTimeCnt, \
                                int((time.time() - PrintTimeDiffLast)*1000), \
-                               str) 
+                               str)) 
     PrintTimeCnt += 1
     PrintTimeDiffLast = time.time()
 
@@ -30,7 +30,7 @@ def sm_add(fra, til, data):
         data = str(dsum)
 
     except:
-        print '!X ' + data
+        print('!X ' + data)
         data = 'NAK'
 
     return data
@@ -41,7 +41,7 @@ def sm_ls(fra, til, data):
         subprocess.call(['ls', '-1'], shell=True)
         data = 'ACK'
     except:
-        print '!X ' + data
+        print('!X ' + data)
         data = 'NAK'
 
     return data
@@ -49,10 +49,10 @@ def sm_ls(fra, til, data):
 
 def sm_print(fra, til, data):
     try:
-        print "PRINT: " + data
+        print("PRINT: " + data)
         data = None
     except:
-        print '!X ' + data
+        print('!X ' + data)
         data = 'NAK'
 
     return data
@@ -71,10 +71,10 @@ def sm_getCpuTemp(fra, til, data):
 
 def Disp_sm_pi(fra, til, data, con):
 
-    print '*pi'
-    print til
+    print('*pi')
+    print(til)
     to = til.pop(0)
-    print to
+    print(to)
     if to == 'Add':
         data = sm_add(fra, til, data)
     elif to == 'CpuTemp':
@@ -87,7 +87,7 @@ def Disp_sm_pi(fra, til, data, con):
     else:
         data = 'NAK'
 
-    print data
+    print(data)
     return data
     
 def sms_pop(adr):
@@ -120,7 +120,7 @@ class TestStringMethods(unittest.TestCase):
 
 if __name__ == '__main__':
   
-    print 3*'\n'
-    print 70*'*'
-    print 'Test: '
+    print(3*'\n')
+    print(70*'*')
+    print('Test: ')
     unittest.main()

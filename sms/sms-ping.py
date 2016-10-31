@@ -1,73 +1,74 @@
+import multiprocessing
 import socket
 import sys
 import time
+
+from sms_hub_lib5 import *
 from sms_pi import *
-from sms_hub_lib4 import *
-import multiprocessing
 
 sm_wait = {} # Disse venter data
 waiting = False
 
 
 def get_data():   
-    print 'get_data in'
+    print('get_data in')
      
     while True:
         amount_received = 0
-        print 'recv'
+        print('recv')
         msg = sock.recv(200)
-        print 'get_data -> ' + msg
+        print('get_data -> ' + msg)
         if msg:
             
             l = msg.strip().split('\t')
             
             til = l[1].split('.')
-            print til
+            print(til)
             
             if til[-1] == 'Quit':
-                print 'break'
+                print('break')
                 q.put(msg)
                 break
                 
         else:
-            print 'get_data return'
+            print('get_data return')
             sock.close()
             return
             
         amount_received += len(msg)
         #print >>sys.stderr, 'received "%s"' % data
         q.put(msg)
-    print 'get_data ut'
+    print('get_data ut')
     
     
 def get_data2():   
-    print 'get_data in2'
+    print('get_data in2')
      
     while True:
         amount_received = 0
-        print 'recv'
+        print('recv')
         msg = sock.recv(200)
-        print 'get_data -> ' + str(msg)
+        print('get_data -> ' + str(msg))
         if msg:
             
             l = msg.strip().split('\t')
             
             til = l[1].split('.')
-            print til
+            print(til)
             
             if til[-1] == 'Quit':
-                print 'break'
+                print('break')
                 q.put(msg)
                 break
                 
         else:
-            print 'get_data return'
+            print('get_data return')
             sock.close()
             return
             
         amount_received += len(msg)
         #print >>sys.stderr, 'received "%s"' % data
-        print 'w: ' + str(waiting) + '-' + l[1] + '\t' + l[0]
+        print('w: ' + str(waiting) + '-' + l[1] + '\t' + l[0])
         if waiting == l[1] + '\t' + l[0]:
             q.put(msg)
         else:
@@ -76,10 +77,10 @@ def get_data2():
             l[2] = Disp_sm_pi(l[0], til, l[2], sock)
             if l[2]:
                 data = l[1] + '\t' + l[0] + '\t' + l[2]
-                print >>sys.stderr, 'sending data back: ' + data
+                print('sending data back: ' + data)
                 sock.sendall(data)
             
-    print 'get_data ut2'
+    print('get_data ut2')
     
         
 #def sm_wait_for(til):
@@ -93,7 +94,7 @@ def Xsm_func(fra, til, data):
     global waiting
     # Send data
     msg = fra + '\t' + til + '\t' + data + '\t#'
-    print >>sys.stderr, 'Xsending "%s"' % msg
+    print('Xsending "%s"' % msg)
     
     PTD("Send")
     waiting = fra + '\t' + til
@@ -104,7 +105,7 @@ def Xsm_func(fra, til, data):
     #get_data()
 
     msg = q.get()
-    print 'wFalse'
+    print('wFalse')
     waiting = False
     
     if msg == '':
@@ -124,17 +125,18 @@ def pingSystem(name, n, m):
         for j in xrange(0,m):
             sock.sm_func(sysName, name + '.ping', '.')
             
-        print name, 'ping: ',i, (time.time() - t0)*1000 / m, 'ms' 
+        print(name, 'ping: ',i, (time.time() - t0)*1000 / m, 'ms') 
         #time.sleep(0.1)
 
-    print  i*j, "ping tok", time.time() - t1, 's'
+    print(i*j, "ping tok", time.time() - t1, 's')
     
     sock.deb = True    
 
 
 ##### MAIN
 if len(sys.argv) < 3:
-    sys.argv = ["Testing", "rwe1814.asuscomm.com", "Test1"]
+    # sys.argv = ["Testing", "rwe1814.asuscomm.com", "Test1"]
+    sys.argv = ["Testing", "192.168.1.99", "Test1"]
 
 
 sysName = sys.argv[2]
@@ -150,27 +152,27 @@ try:
 ##    print 'Send ""'
 ##    sock.sendall('')
 ##    time.sleep(5)
-    print
-    print 1
-    print "-> RegName: " + sock.sm_func(sysName, 'Serv.RegName', sysName)
-    print "-> Serv ping: " + sock.sm_func(sysName, 'Serv.ping', '.')
-    print "-> GoPiGo ping: " + sock.sm_func(sysName, 'GoPiGo.ping', '.')
-    print "-> Serv.CpuTemp: " + sock.sm_func(sysName, 'Serv.CpuTemp', '.')
-    print "-> GoPiGo.CpuTemp: " + sock.sm_func(sysName, 'GoPiGo.CpuTemp', '.')
+    print()
+    print(1)
+    print("-> RegName: " + sock.sm_func(sysName, 'Serv.RegName', sysName))
+    print("-> Serv ping: " + sock.sm_func(sysName, 'Serv.ping', '.'))
+    print("-> GoPiGo ping: " + sock.sm_func(sysName, 'GoPiGo.ping', '.'))
+    print("-> Serv.CpuTemp: " + sock.sm_func(sysName, 'Serv.CpuTemp', '.'))
+    print("-> GoPiGo.CpuTemp: " + sock.sm_func(sysName, 'GoPiGo.CpuTemp', '.'))
 
-    print "-> Serv.ListCli: " + sock.sm_func(sysName, 'Serv.ListCli', '.')
+    print("-> Serv.ListCli: " + sock.sm_func(sysName, 'Serv.ListCli', '.'))
 
     pingSystem('Serv', 4, 100)
     # pingSystem('GoPiGo', 4, 100)
 
-    print 2    
+    print(2)    
     #time.sleep(15)
-    print 3
+    print(3)
     
 finally:
-    print "-> Quit: " + sock.sm_func(sysName, sysName + '.Quit', sysName) 
-    print "UnRegName: " + sock.sm_func(sysName, 'Serv.UnRegName', sysName) 
+    print("-> Quit: " + sock.sm_func(sysName, sysName + '.Quit', sysName)) 
+    print("UnRegName: " + sock.sm_func(sysName, 'Serv.UnRegName', sysName)) 
 #    q.put('')
          
-    print >>sys.stderr, 'closing socket'
+    print('closing socket')
     sock.close()
