@@ -31,15 +31,37 @@ client.connect(9999, 'localhost', function() {
 
   sendSms('TestNode', 'Serv.RegName', 'TestNode')
 	sendSms('TestNode', 'Serv.CpuTemp', '.')
+  sendSms('TestNode', 'Serv.ping', '.')
  
+  sendSms('TestNode', 'TestNode.ping', '.')
   sendSms('TestNode', 'TestNode.Quit', 'TestNode')
   sendSms('TestNode', 'Serv.UnRegName', 'TestNode')
 
 });
 
+function myAssert(condition, message) {
+    if (!condition) {
+        message = message || "Assertion failed";
+        if (typeof Error !== "undefined") {
+            throw new Error(message);
+        }
+        throw message; // Fallback
+    }
+}
+
 client.on('data', function(data) {
-	console.log('Received: ' + data);
-	//client.destroy(); // kill client after server's response
+ 
+  // Split up messages 
+  while (data.length > 0)  { 
+    var cnt = +data.slice(0,3)
+    myAssert(cnt <= data.length - 3)
+
+    var sms = data.slice(3, cnt + 3).toString('utf8')
+
+    console.log('Received msg: ' + sms);
+
+    data = data.slice(cnt  + 3)
+  }
 });
 
 client.on('close', function() {
