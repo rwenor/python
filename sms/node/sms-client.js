@@ -21,6 +21,14 @@ function sendSms(fromMe, to, cmd) {
   client.write(s)
 }
 
+function dispatchSms(msg) {
+  var smsParts = msg.split('\t')
+  // cLog(smsParts)
+
+  if (smsParts[1] == 'TestNode.ping') {
+    sendSms(smsParts[1], smsParts[0], 'ACK')
+  }
+}
 
 var net = require('net');
 
@@ -30,12 +38,13 @@ client.connect(9999, 'localhost', function() {
 	console.log('Connected');
 
   sendSms('TestNode', 'Serv.RegName', 'TestNode')
+
+  sendSms('TestNode', 'TestNode.ping', '.')
+
 	sendSms('TestNode', 'Serv.CpuTemp', '.')
   sendSms('TestNode', 'Serv.ping', '.')
- 
-  sendSms('TestNode', 'TestNode.ping', '.')
-  sendSms('TestNode', 'TestNode.Quit', 'TestNode')
-  sendSms('TestNode', 'Serv.UnRegName', 'TestNode')
+  //sendSms('TestNode', 'TestNode.Quit', 'TestNode')
+  //sendSms('TestNode', 'Serv.UnRegName', 'TestNode')
 
 });
 
@@ -59,6 +68,7 @@ client.on('data', function(data) {
     var sms = data.slice(3, cnt + 3).toString('utf8')
 
     console.log('Received msg: ' + sms);
+    dispatchSms(sms)
 
     data = data.slice(cnt  + 3)
   }
