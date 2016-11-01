@@ -33,7 +33,7 @@ function dispatchSms(msg) {
 var net = require('net');
 
 var client = new net.Socket();
-var sysName = 'NodeClient'
+var sysName = 'NodeClientPi'
 client.connect(9999, '192.168.1.99', function() {
 // client.connect(9999, 'localhost', function() {  
 	console.log('Connected');
