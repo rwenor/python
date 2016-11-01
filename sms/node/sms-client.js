@@ -33,18 +33,19 @@ function dispatchSms(msg) {
 var net = require('net');
 
 var client = new net.Socket();
-// client.connect(9999, '192.168.1.166', function() {
-client.connect(9999, 'localhost', function() {  
+var sysName = 'NodeClient'
+client.connect(9999, '192.168.1.99', function() {
+// client.connect(9999, 'localhost', function() {  
 	console.log('Connected');
 
-  sendSms('TestNode', 'Serv.RegName', 'TestNode')
+  sendSms(sysName, 'Serv.RegName', sysName)
 
-  sendSms('TestNode', 'TestNode.ping', '.')
+  sendSms(sysName, 'TestNode.ping', '.')
 
-	sendSms('TestNode', 'Serv.CpuTemp', '.')
-  sendSms('TestNode', 'Serv.ping', '.')
-  //sendSms('TestNode', 'TestNode.Quit', 'TestNode')
-  //sendSms('TestNode', 'Serv.UnRegName', 'TestNode')
+	sendSms(sysName, 'Serv.CpuTemp', '.')
+  sendSms(sysName, 'Serv.ping', '.')
+  //sendSms(sysName, 'TestNode.Quit', sysName)
+  //sendSms(sysName, 'Serv.UnRegName', sysName)
 
 });
 

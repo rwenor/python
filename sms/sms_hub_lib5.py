@@ -116,7 +116,9 @@ class sms_client:
         self.cAddr = addr
         self.con = con
 
-
+# ******************
+#    Server
+# ******************
 class SmsTcpServer:
     cName = ''
     cAddr = ''
@@ -124,6 +126,7 @@ class SmsTcpServer:
 
     def __init__(self, name, addr, port):
         self.name = name
+
         self.addr = (addr, port)
         self.running = True
 
