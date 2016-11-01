@@ -25,7 +25,8 @@ function dispatchSms(msg) {
   var smsParts = msg.split('\t')
   // cLog(smsParts)
 
-  if (smsParts[1] == 'TestNode.ping') {
+  if (smsParts[1] == sysName +'.ping') {
+    cLog('ping...')
     sendSms(smsParts[1], smsParts[0], 'ACK')
   }
 }

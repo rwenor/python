@@ -47,7 +47,8 @@ try:
     print("-> Serv.ListCli: " + sock.sm_func(sysName, 'Serv.ListCli', '.'))
 
     pingSystem('Serv', 4, 100)
-    pingSystem('TestNode', 4, 100)
+    pingSystem('NodeClient', 4, 100)
+    pingSystem('NodeClientPi', 4, 100)
     # pingSystem('GoPiGo', 4, 100)
 
     print(2)    
