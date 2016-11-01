@@ -1,4 +1,7 @@
-
+//
+// <cmd> <ip-server> <client-name>
+//
+//
 
 function cLog() {
   console.log(arguments)
@@ -11,6 +14,11 @@ function pad(num, size) {
     while (s.length < size) s = "0" + s;
     return s;
 }
+
+// print process.argv
+process.argv.forEach(function (val, index, array) {
+  console.log(index + ': ' + val);
+});
 
 function sendSms(fromMe, to, cmd) {
   s = fromMe +'\t'+ to +'\t'+ cmd
@@ -32,10 +40,13 @@ function dispatchSms(msg) {
 }
 
 var net = require('net');
-
 var client = new net.Socket();
-var sysName = 'NodeClient'
-client.connect(9999, '192.168.1.99', function() {
+
+var myArgs = process.argv.slice(2)
+var sysName = myArgs[1] || 'NodeClient'
+var servIp = myArgs[0] || '192.168.1.99'
+
+client.connect(9999, servIp, function() {
 // client.connect(9999, 'localhost', function() {  
 	console.log('Connected');
 
