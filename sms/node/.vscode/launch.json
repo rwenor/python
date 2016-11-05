@@ -7,7 +7,7 @@
       "request": "launch",
       "program": "${workspaceRoot}/sms-client.js",
       "stopOnEntry": false,
-      "args": [],
+      "args": ['127.0.0.1', 'NodeCli'],
       "cwd": "${workspaceRoot}",
       "preLaunchTask": null,
       "runtimeExecutable": null,
