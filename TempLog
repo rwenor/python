@@ -1,6 +1,8 @@
+
 #!/bin/bash
 
 cd /home/pi/python
+echo test > MyFile
 
 python tdtool-with-sensors.py -d 2367754
 python tdtool-with-sensors.py -d 2777935
