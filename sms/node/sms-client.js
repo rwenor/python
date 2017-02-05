@@ -25,6 +25,10 @@ function myAssert(condition, message) {
 
 // **** Sms Func ****
 function sendSms(fromMe, to, cmd) {
+
+  if (cmd == 'DisCon') {
+    cLog('Fake')
+  }
   s = fromMe +'\t'+ to +'\t'+ cmd
   s = pad(s.length,3) + s
 
@@ -43,6 +47,24 @@ function dispatchSms(msg) {
     cLog('ping...')
     sendSms(smsParts[1], smsParts[0], 'ACK')
   }
+
+  if (smsParts[1] == sysName) {
+    cLog('SysMsg:', smsParts[2])
+    //sendSms(smsParts[1], smsParts[0], 'ACK')
+    if (smsParts[2] == 'BYE') {
+      setTimeout( () => {
+        process.exit(0)
+      }, 500)
+    }
+
+    if (smsParts[2] == 'DisCon') {
+      setTimeout( () => {
+        client.destroy()
+        //client = new net.Socket()
+      }, 500)
+    }
+
+  }
 }
 
 
@@ -52,20 +74,10 @@ process.argv.forEach(function (val, index, array) {
   console.log('  ', index + ': ' + val);
 });
 
-// ****** MAIN ******
-var net = require('net');
-var client = new net.Socket();
 
-var myArgs = process.argv.slice(2)
-var sysName = myArgs[1] || 'NodeClient'
-var servIp = myArgs[0] || '192.168.1.166'
-
-cLog('Connecting: ', servIp)
-
-client.connect(9999, servIp, function() {
-// client.connect(9999, 'localhost', function() {  
-	console.log('Connected');
-
+function sendConnect() {
+  console.log('Connected')
+  isConnected = 1
   sendSms(sysName, 'Serv.RegName', sysName)
 
   sendSms(sysName, 'TestNode.ping', '.')
@@ -74,7 +86,40 @@ client.connect(9999, servIp, function() {
   sendSms(sysName, 'Serv.ping', '.')
   //sendSms(sysName, 'TestNode.Quit', sysName)
   //sendSms(sysName, 'Serv.UnRegName', sysName)
+  setTimeout(() => {
+    //sendSms(sysName, sysName, 'DisCon')
+  }, 1000)
+}
 
+// ****** MAIN ******
+var net = require('net');
+var client = new net.Socket();
+
+var myArgs = process.argv.slice(2)
+var sysName = myArgs[1] || 'NodeClient'
+var servIp = myArgs[0] || '192.168.1.166'
+var isConnected = 0
+
+cLog('Connecting: ', servIp)
+
+client.connect(9999, servIp, function() {
+// client.connect(9999, 'localhost', function() {  
+  sendConnect()
+});
+
+client.on('error', function(e) {
+    if(e.code == 'ECONNREFUSED') {
+        console.log('Is the server running?');
+
+        setTimeout(function() {
+            client.connect(9999, servIp, function(){
+                console.log('RECONNECTED TO: ' + servIp + ':' + 9999);
+                sendConnect()
+            });
+        }, 4000);
+
+        console.log('Timeout for 5 seconds before trying port:' + 9999 + ' again');
+    }  
 });
 
 // Split and send to dispatcher
@@ -96,5 +141,31 @@ client.on('data', function(data) {
 
 // Close
 client.on('close', function() {
-	console.log('Connection closed');
+  if (isConnected) {
+    console.log('Connection closed ??? Reconnect');
+
+    setTimeout(function() {
+            client.connect(9999, servIp, function(){
+                console.log('RECONNECTED TO: ' + servIp + ':' + 9999);
+                sendConnect()
+            });
+    }, 4000);
+
+  } else {
+    console.log('??? Reconnect');
+  }
+  
+  isConnected = 0
 });
+
+
+process.addListener('SIGINT', function () {
+  cLog('The end...')
+  // sendSms(sysName, 'Serv.Quit', sysName)
+  sendSms(sysName, 'Serv.UnRegName', sysName)
+  
+  // setTimeout( () => {
+  //   process.exit(0)
+  // }, 500)
+  
+})
