@@ -1,13 +1,11 @@
 //
 // <cmd> <ip-server> <client-name>
 //
-//
 
-function cLog() {
-  console.log(arguments)
+function cLog(...arg) {
+  // console.log(arguments)
+  console.log(...arg)
 }
-
-cLog(1, "Hallo")
 
 function pad(num, size) {
     var s = num+"";
@@ -15,20 +13,28 @@ function pad(num, size) {
     return s;
 }
 
-// print process.argv
-process.argv.forEach(function (val, index, array) {
-  console.log(index + ': ' + val);
-});
+function myAssert(condition, message) {
+    if (!condition) {
+        message = message || "Assertion failed";
+        if (typeof Error !== "undefined") {
+            throw new Error(message);
+        }
+        throw message; // Fallback
+    }
+}
 
+// **** Sms Func ****
 function sendSms(fromMe, to, cmd) {
   s = fromMe +'\t'+ to +'\t'+ cmd
   s = pad(s.length,3) + s
 
-  cLog(s, s.length)
+  cLog('<sendSms', s, s.length, '</>')
 
   client.write(s)
 }
 
+
+// ***** DISPATCH *****
 function dispatchSms(msg) {
   var smsParts = msg.split('\t')
   // cLog(smsParts)
@@ -39,12 +45,22 @@ function dispatchSms(msg) {
   }
 }
 
+
+// print process.argv
+cLog('Args:')
+process.argv.forEach(function (val, index, array) {
+  console.log('  ', index + ': ' + val);
+});
+
+// ****** MAIN ******
 var net = require('net');
 var client = new net.Socket();
 
 var myArgs = process.argv.slice(2)
 var sysName = myArgs[1] || 'NodeClient'
-var servIp = myArgs[0] || '192.168.1.99'
+var servIp = myArgs[0] || '192.168.1.166'
+
+cLog('Connecting: ', servIp)
 
 client.connect(9999, servIp, function() {
 // client.connect(9999, 'localhost', function() {  
@@ -61,16 +77,7 @@ client.connect(9999, servIp, function() {
 
 });
 
-function myAssert(condition, message) {
-    if (!condition) {
-        message = message || "Assertion failed";
-        if (typeof Error !== "undefined") {
-            throw new Error(message);
-        }
-        throw message; // Fallback
-    }
-}
-
+// Split and send to dispatcher
 client.on('data', function(data) {
  
   // Split up messages 
@@ -87,6 +94,7 @@ client.on('data', function(data) {
   }
 });
 
+// Close
 client.on('close', function() {
 	console.log('Connection closed');
 });
