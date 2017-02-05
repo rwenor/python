@@ -13,7 +13,7 @@ waiting = False
 
 def pingSystem(name, n, m):
     t1 = time.time()
-    res = -1;
+    res = -1
     sock.deb = False
     for i in xrange(0,n):
         t0 = time.time()
