@@ -96,11 +96,11 @@ var net = require('net');
 var client = new net.Socket();
 
 var myArgs = process.argv.slice(2)
-var sysName = myArgs[1] || 'NodeClient'
-var servIp = myArgs[0] || '192.168.1.166'
+var sysName = myArgs[0] || 'NodeClient'
+var servIp = myArgs[1] || 'rwe1814.asuscomm.com'
 var isConnected = 0
 
-cLog('Connecting: ', servIp)
+cLog(sysName, 'connecting: ', servIp)
 
 client.connect(9999, servIp, function() {
 // client.connect(9999, 'localhost', function() {  
@@ -164,8 +164,9 @@ process.addListener('SIGINT', function () {
   // sendSms(sysName, 'Serv.Quit', sysName)
   sendSms(sysName, 'Serv.UnRegName', sysName)
   
-  // setTimeout( () => {
-  //   process.exit(0)
-  // }, 500)
+  setTimeout( () => {
+    cLog('Force exit...')
+    process.exit(0)
+  }, 5000)
   
 })
