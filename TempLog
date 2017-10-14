@@ -21,8 +21,8 @@ do
 # echo 3
   python tdtool-with-sensors.py -d 3017840  >> TempLogBad.dat
 # secho end
-#  ./VisTemp.py -p Bad -s /var/www/TempBad.png
-#  ./VisTemp.py -p Ute -s /var/www/TempUte.png
+./VisTemp.py -p Bad -s /var/www/TempBad.png
+./VisTemp.py -p Ute -s /var/www/TempUte.png
 
   sleep 600
 done
