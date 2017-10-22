@@ -24,7 +24,7 @@ except getopt.GetoptError as err:
 saveFile = ''
 loadFile = 'TempLog.dat'
 param = 'Ute'
-param2 = 'Ute oppe'
+param2 = 'Ute vegg'
 humStart = 0
 dayNr = 2
 
@@ -74,7 +74,7 @@ with open(loadFile, 'r') as f:
                 data3.append( float( l[2] ) / 10.0 + humStart)
                 date3.append( isodate(l[3]) )
                 
-#print data
+#print data2
 #pl.figure(1)
 #date1 = pl.dates.date2num(date1)
 pl.xticks(rotation=70)
