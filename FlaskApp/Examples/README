@@ -1,0 +1,257 @@
+
+                      Netfonds API Python Library 
+                              Version 2.0 
+
+                              
+1. Introduction
+---------------
+
+The library itself consist of two files:
+
+   nfapi.py 
+   nftp.py 
+
+Copy these to your working directory and use 
+
+   include nfapi 
+   include nftp 
+
+in your source code. They have primarily been tested with Python 3 and 
+above but should work for Python 2 as well. 
+
+To test the library files, open up a terminal window and run 
+
+   % python3 quotes-demo.py 
+   % python3 trade-demo.py 
+   % python3 news-demo.py 
+
+The "nfapi-client.py" is the old NFAPI client and is only retained for 
+backward compatibility with existing clients. It is not used by the new 
+library.  
+
+2. NFTP library: nftp.py 
+------------------------
+
+nftp.py transforms the output from nfapi.py to native Python classes
+that mimics structs: 
+
+    1  Quotes
+    3  Trade
+    6  Extended_spread
+   20  Security
+   22  Market_by_price
+   24  Exchange
+   25  Release
+   27  History
+   30  Authorized
+   48  Exchange_state
+   53  Customer_order
+   54  Customer_deal
+   62  Trader_available
+   70  User_message
+   82  Extended_paper_summary
+   91  Index_weight
+   99  Errmsg
+  120  Extended_security
+  126  Fund
+  131  Extended_available
+  135  Heartbeat
+  146  Trade_information
+  193  Api_response
+  194  Api_order_entry
+  195  Api_order_change
+  311  Pool_content
+
+You can use the python help(nftp.Security) function to inspect the objects
+and see which slots they define:  
+
+   % python
+   >> import nftp
+   >> help(nftp.Security)
+   Help on class Security in module nftp:
+   
+   class Security(NFTPGenericClass)
+    |  This class defines the following slots:
+    |  .sequence
+    |  .exchange
+    |  .time
+    |  .paper
+    |  .name
+    |  .isin
+    |  .lot
+    |  .last_trade_date
+    |  .prev_price
+    |  .tradeable_size
+    |  .currency
+    |  .sectype
+    |  .sector
+    |  .primary_paper
+    |  .primary_exchange
+    |  .value_factor
+    |  .status
+
+If "security" is an instance of nftp.Security, you can use "security.paper"
+to get the paper of "security".
+
+
+3. NFAPI Library: nfapi.py
+--------------------------
+
+nfapi.py is the main library for dealing with communication and handling
+of the Netfonds API. It has two callable classes:
+
+   nfapi.QuoteConnect(handler) 
+   nfapi.TradeConnect(handler)
+
+nfapi.QuoteConnect(handler) connects to one of the public API servers
+whereas the nfapi.TradeConnect(handler) connects to the private API
+server. The handler is your own call-back function where all the NFTP
+messages will be routed through. The handler will be called twice
+for each message; the first time before the message has been transformed
+to an NFTP object and the second time after. The handler must accept
+two parameters: the first is the nftp data and the second is the api
+instance which called it.  
+
+   def handleNFTP(nftpinst, api):
+      if isinstance(nftpinst, list):
+         print(nftpinst)
+      elif isinstance(nftpinst, nftp.Errmsg):
+         api.nftpError(nftpinst)
+
+is a handler that will print all the received messages in raw format
+and then trigger an error if an error occurs and else do nothing.
+A minimal handler should at least catch errors from the server:
+
+   def handleNFTP(nftpinst, api):
+      if isinstance(nftpinst, nftp.Errmsg):
+         <do something with the error>
+
+If you don't want the transform the raw NFTP format to an NFTP
+object, your handler can return True, in which case nfapi assumes
+that you'll do all the parsing (and error-handling) work yourself:
+
+   def handleNFTP(nftpinst, api):
+      print(nftpinst)
+      return True
+
+A slightly more advanced example: 
+
+   # Print last date and closing price for all active 
+   # securities on OSE
+   import nfapi
+   import nftp
+
+   def handleNFTP(nftpinst, api):
+      # Remember to always include error handling
+      if isinstance(nftpinst, nftp.Errmsg):
+         api.nftpError(nftpinst)
+      elif isinstance(nftpinst, nftp.Security):
+         print("%s.%s had last trade date %s and closed at %f" %
+               (nftpinst.paper, nftpinst.exchange,
+                nftpinst.last_trade_date, nftpinst.prev_price))
+
+   api = nfapi.QuoteConnect(handleNFTP)
+   api.login()
+   api.listSecurities("OSE")
+   api.quit()
+
+New in this version is that the nfapi methods may also return synchronous
+messages rather than passing everything through the handler function. You still
+need to pass a handler function for trapping errors and messages
+that you want to be handled by the handler. The above example using
+returnData=True: 
+
+   # Return security objects so that we can print them using
+   # our own loop
+   import nfapi
+   impirt nftp
+   
+   def handleNFTP(nftpinst, api):
+      if isinstance(nftpinst, nftp.Errmsg):
+         api.nftpError(nftpinst)
+
+   api = nfapi.QuoteConnect(handleNFTP)
+   api.login()
+   # returnData=True instructs the method to return the data 
+   secs = api.listSecurities("OSE", returnData=True)
+   for sec in secs:
+      print("%s.%s had last trade date %s and closed at %f" %
+            (sec.paper, sec.exchange, sec.last_trade_date,
+            sec.prev_price))
+   api.quit()
+   
+All methods that actually return something will honor the returnData
+parameter. Asynchronous messages will be passed through the
+handler function as before (and can not be returned).
+
+You can use help(nfapi.QuoteConnect) and help(nfapi.TradeConnect) to
+see which methods are offerend: 
+
+   % python
+   >>> import nfapi
+   >>> help(nfapi.QuoteConnect)
+   
+   class QuoteConnect(NFAPI)
+    |  Method resolution order:
+    |      QuoteConnect
+    |      NFAPI
+    |      builtins.object
+    |
+    |  Methods defined here:
+    |
+    |  __init__(self, handler)
+    |
+    |  currentQuotes(self, paper, exchange, returnData=False)
+    |  currentSnapshot(self, paper, exchange, feed=[], returnData=False)
+    |  history(self, paper, exchange, from_date, to_date=20170127, returnData=False)
+    |  indexMembers(self, index, exchange, returnData=False)
+    |  listSecurities(self, exchange, returnData=False)
+    |  listShortable(self, exchange, returnData=False)
+    |  losers(self, exchange, levels=10, returnData=False)
+    |  spreads(self, paper, exchange, date=20170127, from_clock=0, to_clock=100537, returnData=False)
+    |  subscribe(self, paper, exchange, feed=[], returnData=False)
+    |  subscribeRelease(self, distributor, returnData=False)
+    |  trades(self, paper, exchange, date=20170127, returnData=False)
+    |  unsubscribe(self, paper, exchange, feed=[])
+    |  unsubscribeRelease(self, distributor)
+    |  winners(self, exchange, levels=10, returnData=False)
+   >>>
+   >>> help(nfapi.TradeConnect)
+    
+   class TradeConnect(NFAPI)
+    |  Method resolution order:
+    |      TradeConnect
+    |      NFAPI
+    |      builtins.object
+    |
+    |  Methods defined here:
+    |
+    |  __init__(self, handler)
+    |  accountAvailable(self, returnData=False)
+    |  activeOrders(self, returnData=False)
+    |  cancelOrder(self, orderid, returnData=False)
+    |  changeOrder(self, orderid, quantity=False, limit=False)
+    |  enterOrder(self, paper, exchange, type, quantity, limit, short='N', checkOnly='N', returnData=False)
+    |  listAccount(self, paper=False, exchange=False, returnData=False)
+    |  testMode(self, mode)
+
+
+
+
+   
+
+   
+
+   
+
+         
+         
+
+
+
+
+
+
+
+
+
