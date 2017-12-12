@@ -83,6 +83,7 @@ def printUsage():
 def listSensors():
 	response = doRequest('sensors/list', {'includeIgnored': 1});
 	print("Number of sensors: %i" % len(response['sensor']));
+	# print(response)
 	for sensor in response['sensor']:
 		lastupdate = datetime.datetime.fromtimestamp(int(sensor['lastUpdated']));
 		print "%s\t%s\t%s" % (sensor['id'], sensor['name'], lastupdate)
@@ -154,6 +155,7 @@ def doRequest(method, params):
 	oauth_request = oauth.OAuthRequest.from_consumer_and_token(consumer, token=token, http_method='GET', http_url="http://api.telldus.com/json/" + method, parameters=params)
 	oauth_request.sign_request(oauth.OAuthSignatureMethod_HMAC_SHA1(), consumer, token)
 	headers = oauth_request.to_header()
+	#print(headers)
 	headers['Content-Type'] = 'application/x-www-form-urlencoded'
 
 	conn = httplib.HTTPConnection("api.telldus.com:80")
