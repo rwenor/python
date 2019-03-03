@@ -1,2 +1,2 @@
-nc -l 9999 | mplayer  -fps 24 -cache 512 -
+nc -l 9999 | /Applications/MPlayer\ OSX\ Extended.app/Contents/Resources/Binaries/mpextended.mpBinaries/Contents/MacOS/mplayer -fps 24 -cache 512 -
 
